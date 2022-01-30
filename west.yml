@@ -9,5 +9,5 @@ manifest:
       revision: v1.8.0
       import: true
   self:
-    path: app
+    path: application
 
