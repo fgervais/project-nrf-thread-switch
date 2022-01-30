@@ -8,6 +8,8 @@ services:
       # Make the bash prompt beautiful
       - /etc/group:/etc/group:ro
       - /etc/passwd:/etc/passwd:ro
+    devices:
+      - /dev/ttyACM0:/dev/ttyACM0
     tmpfs:
       - /tmp
     environment:
