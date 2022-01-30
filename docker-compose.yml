@@ -1,0 +1,15 @@
+version: '3'
+services:
+  nrf:
+    image: fw-nrfconnect-nrf-docker:nrfutil
+    user: ${UID:-1000}:${GID:-1000}
+    volumes:
+      - ..:/workdir/project
+      # Make the bash prompt beautiful
+      - /etc/group:/etc/group:ro
+      - /etc/passwd:/etc/passwd:ro
+    tmpfs:
+      - /tmp
+    environment:
+      - HOME=/tmp
+    working_dir: /workdir/project

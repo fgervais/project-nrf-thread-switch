@@ -1,5 +1,11 @@
 # 
 
+## Docker environment
+
+```bash
+docker-compose run nrf bash
+```
+
 ## Build
 
 ```bash
