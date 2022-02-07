@@ -28,27 +28,30 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 #if !DT_NODE_HAS_STATUS(SW0_NODE, okay)
 #error "Unsupported board: sw0 devicetree alias is not defined"
 #endif
+
+
 static const struct gpio_dt_spec button = GPIO_DT_SPEC_GET_OR(SW0_NODE, gpios,
 							      {0});
 static struct gpio_callback button_cb_data;
 
 
-static struct gpio_dt_spec led = GPIO_DT_SPEC_GET_OR(DT_ALIAS(led0), gpios,
-						     {0});
+// static struct gpio_dt_spec led = GPIO_DT_SPEC_GET_OR(DT_ALIAS(led0), gpios,
+// 						     {0});
 
 
 static bool led_is_on = true;
 void button_pressed(const struct device *dev, struct gpio_callback *cb,
 		    uint32_t pins)
 {
-	printk("Button pressed at %" PRIu32 "\n", k_cycle_get_32());
-	gpio_pin_set_dt(&led, (int)led_is_on);
+	// printk("Button pressed at %" PRIu32 "\n", k_cycle_get_32());
+	// gpio_pin_set_dt(&led, (int)led_is_on);
 	led_is_on = !led_is_on;
 }
 
 void main(void)
 {
 	int ret;
+	// const struct device *cons = device_get_binding(CONSOLE_LABEL);
 
 	if (!device_is_ready(button.port)) {
 		printk("Error: button device %s is not ready\n",
@@ -75,19 +78,27 @@ void main(void)
 	gpio_add_callback(button.port, &button_cb_data);
 	printk("Set up button at %s pin %d\n", button.port->name, button.pin);
 
-	if (led.port && !device_is_ready(led.port)) {
-		printk("Error %d: LED device %s is not ready; ignoring it\n",
-		       ret, led.port->name);
-		led.port = NULL;
-	}
-	if (led.port) {
-		ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT);
-		if (ret != 0) {
-			printk("Error %d: failed to configure LED device %s pin %d\n",
-			       ret, led.port->name, led.pin);
-			led.port = NULL;
-		} else {
-			printk("Set up LED at %s pin %d\n", led.port->name, led.pin);
-		}
+	// if (led.port && !device_is_ready(led.port)) {
+	// 	printk("Error %d: LED device %s is not ready; ignoring it\n",
+	// 	       ret, led.port->name);
+	// 	led.port = NULL;
+	// }
+	// if (led.port) {
+	// 	ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT);
+	// 	if (ret != 0) {
+	// 		printk("Error %d: failed to configure LED device %s pin %d\n",
+	// 		       ret, led.port->name, led.pin);
+	// 		led.port = NULL;
+	// 	} else {
+	// 		printk("Set up LED at %s pin %d\n", led.port->name, led.pin);
+	// 	}
+	// }
+
+	// pm_device_state_set(cons, PM_DEVICE_STATE_SUSPENDED);
+
+
+	for (ret = 0; ret < 5; ret++) {
+		led_is_on = !led_is_on;
+		k_sleep(K_SECONDS(1));
 	}
 }
