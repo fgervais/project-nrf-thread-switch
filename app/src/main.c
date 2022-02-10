@@ -3,8 +3,13 @@
 #include <devicetree.h>
 #include <drivers/gpio.h>
 
-#include <logging/log.h>
-LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
+// #include <logging/log.h>
+// LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
+
+// #include <net/openthread.h>
+// #include <net/socket.h>
+// #include <openthread/thread.h>
+
 
 /* 1000 msec = 1 sec */
 #define SLEEP_TIME_MS   1000
@@ -97,8 +102,10 @@ void main(void)
 	// pm_device_state_set(cons, PM_DEVICE_STATE_SUSPENDED);
 
 
-	for (ret = 0; ret < 5; ret++) {
-		led_is_on = !led_is_on;
-		k_sleep(K_SECONDS(1));
-	}
+	// for (ret = 0; ret < 5; ret++) {
+	// 	led_is_on = !led_is_on;
+	// 	k_sleep(K_SECONDS(1));
+	// }
+
+	
 }
