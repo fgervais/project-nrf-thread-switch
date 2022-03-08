@@ -2,6 +2,7 @@
 #include <device.h>
 #include <devicetree.h>
 #include <drivers/gpio.h>
+#include <event_manager.h>
 
 #include <logging/log.h>
 LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
@@ -13,28 +14,32 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 #include <net/mqtt.h>
 #include <random/rand32.h>
 
+#define MODULE main
+#include <caf/events/module_state_event.h>
+#include <caf/events/button_event.h>
+
 /* 1000 msec = 1 sec */
 #define SLEEP_TIME_MS   1000
 
 /* The devicetree node identifier for the "led0" alias. */
-#define LED0_NODE DT_ALIAS(led0)
+// #define LED0_NODE DT_ALIAS(led0)
 
-#if DT_NODE_HAS_STATUS(LED0_NODE, okay)
-#define LED0    DT_GPIO_LABEL(LED0_NODE, gpios)
-#define PIN     DT_GPIO_PIN(LED0_NODE, gpios)
-#define FLAGS   DT_GPIO_FLAGS(LED0_NODE, gpios)
-#else
-/* A build error here means your board isn't set up to blink an LED. */
-#error "Unsupported board: led0 devicetree alias is not defined"
-#define LED0    ""
-#define PIN     0
-#define FLAGS   0
-#endif
+// #if DT_NODE_HAS_STATUS(LED0_NODE, okay)
+// #define LED0    DT_GPIO_LABEL(LED0_NODE, gpios)
+// #define PIN     DT_GPIO_PIN(LED0_NODE, gpios)
+// #define FLAGS   DT_GPIO_FLAGS(LED0_NODE, gpios)
+// #else
+// /* A build error here means your board isn't set up to blink an LED. */
+// #error "Unsupported board: led0 devicetree alias is not defined"
+// #define LED0    ""
+// #define PIN     0
+// #define FLAGS   0
+// #endif
 
-#define SW0_NODE	DT_ALIAS(sw0)
-#if !DT_NODE_HAS_STATUS(SW0_NODE, okay)
-#error "Unsupported board: sw0 devicetree alias is not defined"
-#endif
+// #define SW0_NODE	DT_ALIAS(sw0)
+// #if !DT_NODE_HAS_STATUS(SW0_NODE, okay)
+// #error "Unsupported board: sw0 devicetree alias is not defined"
+// #endif
 
 #define SERVER_ADDR "fd00:64::192.168.2.159"
 #define SERVER_PORT 1883
@@ -45,9 +50,9 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 #define APP_MQTT_BUFFER_SIZE 128
 
 
-static const struct gpio_dt_spec button = GPIO_DT_SPEC_GET_OR(SW0_NODE, gpios,
-							      {0});
-static struct gpio_callback button_cb_data;
+// static const struct gpio_dt_spec button = GPIO_DT_SPEC_GET_OR(SW0_NODE, gpios,
+// 							      {0});
+// static struct gpio_callback button_cb_data;
 
 
 // static struct gpio_dt_spec led = GPIO_DT_SPEC_GET_OR(DT_ALIAS(led0), gpios,
@@ -64,14 +69,14 @@ static int nfds;
 static bool connected;
 
 
-static bool led_is_on = true;
-void button_pressed(const struct device *dev, struct gpio_callback *cb,
-		    uint32_t pins)
-{
-	// printk("Button pressed at %" PRIu32 "\n", k_cycle_get_32());
-	// gpio_pin_set_dt(&led, (int)led_is_on);
-	led_is_on = !led_is_on;
-}
+// static bool led_is_on = true;
+// void button_pressed(const struct device *dev, struct gpio_callback *cb,
+// 		    uint32_t pins)
+// {
+// 	// printk("Button pressed at %" PRIu32 "\n", k_cycle_get_32());
+// 	// gpio_pin_set_dt(&led, (int)led_is_on);
+// 	led_is_on = !led_is_on;
+// }
 
 
 static void prepare_fds(struct mqtt_client *client)
@@ -368,33 +373,33 @@ err:
 
 void main(void)
 {
-	int ret;
+	// int ret;
 	// const struct device *cons = device_get_binding(CONSOLE_LABEL);
 
-	if (!device_is_ready(button.port)) {
-		printk("Error: button device %s is not ready\n",
-		       button.port->name);
-		return;
-	}
+	// if (!device_is_ready(button.port)) {
+	// 	printk("Error: button device %s is not ready\n",
+	// 	       button.port->name);
+	// 	return;
+	// }
 
-	ret = gpio_pin_configure_dt(&button, GPIO_INPUT);
-	if (ret != 0) {
-		printk("Error %d: failed to configure %s pin %d\n",
-		       ret, button.port->name, button.pin);
-		return;
-	}
+	// ret = gpio_pin_configure_dt(&button, GPIO_INPUT);
+	// if (ret != 0) {
+	// 	printk("Error %d: failed to configure %s pin %d\n",
+	// 	       ret, button.port->name, button.pin);
+	// 	return;
+	// }
 
-	ret = gpio_pin_interrupt_configure_dt(&button,
-					      GPIO_INT_LEVEL_LOW);
-	if (ret != 0) {
-		printk("Error %d: failed to configure interrupt on %s pin %d\n",
-			ret, button.port->name, button.pin);
-		return;
-	}
+	// ret = gpio_pin_interrupt_configure_dt(&button,
+	// 				      GPIO_INT_LEVEL_LOW);
+	// if (ret != 0) {
+	// 	printk("Error %d: failed to configure interrupt on %s pin %d\n",
+	// 		ret, button.port->name, button.pin);
+	// 	return;
+	// }
 
-	gpio_init_callback(&button_cb_data, button_pressed, BIT(button.pin));
-	gpio_add_callback(button.port, &button_cb_data);
-	printk("Set up button at %s pin %d\n", button.port->name, button.pin);
+	// gpio_init_callback(&button_cb_data, button_pressed, BIT(button.pin));
+	// gpio_add_callback(button.port, &button_cb_data);
+	// printk("Set up button at %s pin %d\n", button.port->name, button.pin);
 
 	// if (led.port && !device_is_ready(led.port)) {
 	// 	printk("Error %d: LED device %s is not ready; ignoring it\n",
@@ -420,7 +425,59 @@ void main(void)
 	// 	k_sleep(K_SECONDS(1));
 	// }
 
+	// k_sleep(K_SECONDS(5));
 
-	publisher();
+	if (event_manager_init()) {
+		LOG_ERR("Event manager not initialized");
+	} else {
+		module_set_state(MODULE_STATE_READY);
+	}
 
+
+	// publisher();
+
+
+	LOG_INF("****************************************");
+	LOG_INF("MAIN DONE");
+	LOG_INF("****************************************");
 }
+
+static bool event_handler(const struct event_header *eh)
+{
+	// if (is_button_event(eh)) {
+	// 	return handle_button_event(cast_button_event(eh));
+	// }
+
+	// if (is_module_state_event(eh)) {
+	// 	const struct module_state_event *event = cast_module_state_event(eh);
+
+	// 	if (check_state(event, MODULE_ID(leds), MODULE_STATE_READY)) {
+	// 		/* Turn on the first LED */
+	// 		send_led_event(LED_ID_0, &led_effect_on);
+	// 	}
+
+	// 	return false;
+	// }
+
+	// /* Event not handled but subscribed. */
+	// __ASSERT_NO_MSG(false);
+
+	// LOG_PRINTK("event_handler");
+
+	// publisher();
+
+	const struct button_event *evt;
+
+	if (is_button_event(eh)) {
+		evt = cast_button_event(eh);
+
+		if (evt->pressed) {
+			publisher();
+		}
+	}
+
+	return true;
+}
+
+EVENT_LISTENER(MODULE, event_handler);
+EVENT_SUBSCRIBE(MODULE, button_event);
