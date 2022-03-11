@@ -21,6 +21,8 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 /* 1000 msec = 1 sec */
 #define SLEEP_TIME_MS   1000
 
+#define CONSOLE_LABEL DT_LABEL(DT_CHOSEN(zephyr_console))
+
 /* The devicetree node identifier for the "led0" alias. */
 // #define LED0_NODE DT_ALIAS(led0)
 
@@ -373,6 +375,8 @@ err:
 
 void main(void)
 {
+	const struct device *cons = device_get_binding(CONSOLE_LABEL);
+
 	// int ret;
 	// const struct device *cons = device_get_binding(CONSOLE_LABEL);
 
@@ -440,6 +444,13 @@ void main(void)
 	LOG_INF("****************************************");
 	LOG_INF("MAIN DONE");
 	LOG_INF("****************************************");
+
+
+
+	k_sleep(K_SECONDS(3));
+	pm_device_state_set(cons, PM_DEVICE_STATE_SUSPENDED);
+
+	LOG_INF("PM_DEVICE_ACTION_SUSPEND");
 }
 
 static bool event_handler(const struct event_header *eh)
