@@ -71,6 +71,8 @@ static int nfds;
 static bool connected;
 
 
+static bool switch_state;
+
 // static bool led_is_on = true;
 // void button_pressed(const struct device *dev, struct gpio_callback *cb,
 // 		    uint32_t pins)
@@ -183,14 +185,23 @@ void mqtt_evt_handler(struct mqtt_client *const client,
 
 static char *get_mqtt_payload(enum mqtt_qos qos)
 {
-	static char payload[] = "FG";
+	static char payload[4];
+
+	if (switch_state) {
+		strcpy(payload, "ON");
+	}
+	else {
+		strcpy(payload, "OFF");
+	}
+
+	switch_state = !switch_state;
 
 	return payload;
 }
 
 static char *get_mqtt_topic(void)
 {
-	return "openthread/test1";
+	return "room/julie/switch/light/state";
 }
 
 static int publish(struct mqtt_client *client, enum mqtt_qos qos)
