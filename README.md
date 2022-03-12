@@ -6,7 +6,7 @@
 mkdir project-nrf-connect-test
 cd project-nrf-connect-test
 docker run --rm -it -u $(id -u):$(id -g) -v $(pwd):/workdir/project coderbyheart/fw-nrfconnect-nrf-docker:v1.8-branch bash
-west init -m https://github.com/fgervais/project-nrf-connect-test.git .
+west init -m https://github.com/fgervais/project-nrf-thread-switch.git .
 west update
 ```
 
