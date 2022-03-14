@@ -18,7 +18,7 @@ const struct {} buttons_def_include_once;
 static const struct gpio_pin col[] = {};
 
 static const struct gpio_pin row[] = {
-	{ .port = 1, .pin = DT_GPIO_PIN(DT_ALIAS(sw0), gpios) },
+	{ .port = 0, .pin = 2 },
 	// { .port = 0, .pin = DT_GPIO_PIN(DT_NODELABEL(button0), gpios) },
 	// { .port = 0, .pin = DT_GPIO_PIN(DT_NODELABEL(button1), gpios) },
 	// { .port = 0, .pin = DT_GPIO_PIN(DT_NODELABEL(button2), gpios) },
