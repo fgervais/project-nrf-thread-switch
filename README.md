@@ -1,4 +1,4 @@
-# 
+# Project Management
 
 ## Init
 
@@ -40,3 +40,19 @@ nrfutil pkg generate --hw-version 52 --sd-req=0x00 \
 
 nrfutil dfu usb-serial -pkg first.zip -p /dev/ttyACM0
 ```
+
+# Battery Life
+
+## Power consumption
+
+### Idle
+
+![Idle Consumption](assets/img/idle-consumption.png)
+
+### Button press
+
+![Press Consumption](assets/img/press-consumption.png)
+
+## CR2032 expected life
+
+![Expected Life](assets/img/battery-life-calculation.jpg)
