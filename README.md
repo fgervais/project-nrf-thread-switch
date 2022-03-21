@@ -50,6 +50,12 @@ nrfutil pkg generate --hw-version 52 --sd-req=0x00 \
 nrfutil dfu usb-serial -pkg first.zip -p /dev/ttyACM0
 ```
 
+# Hardware
+
+https://github.com/fgervais/project-nrf-thread-switch_hardware
+
+
+
 # Battery Life
 
 ## Power consumption
