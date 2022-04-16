@@ -54,7 +54,9 @@ nrfutil dfu usb-serial -pkg first.zip -p /dev/ttyACM0
 
 https://github.com/fgervais/project-nrf-thread-switch_hardware
 
+## Border Router
 
+![Border Router](assets/img/border-router.jpg)
 
 # Battery Life
 
