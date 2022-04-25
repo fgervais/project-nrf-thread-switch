@@ -14,4 +14,4 @@ services:
       - /tmp
     environment:
       - HOME=/tmp
-    working_dir: /workdir/project
+    working_dir: /workdir/project/application

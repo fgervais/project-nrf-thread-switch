@@ -30,14 +30,14 @@ docker-compose run nrf bash
 
 ```bash
 cd application
-west build -b nrf52840dongle_nrf52840 -s app
+docker-compose run nrf west build -b nrf52840dongle_nrf52840 -s app
 ```
 
 ## menuconfig
 
 ```bash
 cd application
-west build -b nrf52840dongle_nrf52840 -s app -t menuconfig
+docker-compose run nrf west build -b nrf52840dongle_nrf52840 -s app -t menuconfig
 ```
 
 ## Flash
