@@ -1,3 +1,5 @@
+![Finger](assets/img/finger.jpg)
+
 # Project Management
 
 ## Init
@@ -51,6 +53,8 @@ nrfutil dfu usb-serial -pkg first.zip -p /dev/ttyACM0
 ```
 
 # Hardware
+
+![Finger](assets/img/assembled.jpg)
 
 https://github.com/fgervais/project-nrf-thread-switch_hardware
 
