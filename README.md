@@ -75,6 +75,17 @@ docker run --rm -u $(id -u):$(id -g) -v $(pwd):/workdir/project --group-add 20 -
 
 Related documentation: https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/matter/openthread_rcp_nrf_dongle.html
 
+### Start OTBR
+
+```
+docker run --sysctl "net.ipv6.conf.all.disable_ipv6=0 net.ipv4.conf.all.forwarding=1 net.ipv6.conf.all.forwarding=1" -p 8080:80 --volume /dev/ttyACM0:/dev/ttyACM0 --privileged openthread/otbr --radio-url spinel+hdlc+uart:///dev/ttyACM0 --nat64-prefix "fd00:64::/96"
+```
+
+We use `--nat64-prefix "fd00:64::/96"` so the nat64 will also forward to private
+ipv4 addresses.
+
+With the default prefix those forwards are prohibited by [RFC 6052](https://datatracker.ietf.org/doc/html/rfc6052).
+
 # Battery Life
 
 ## Power consumption
