@@ -62,6 +62,19 @@ https://github.com/fgervais/project-nrf-thread-switch_hardware
 
 ![Border Router](assets/img/border-router.jpg)
 
+### Setup the RCP firmware on an nRF52840 Dongle
+
+```
+git clone --recursive https://github.com/openthread/ot-nrf528xx.git
+cd ot-nrf528xx
+docker run --rm -u $(id -u):$(id -g) -v $(pwd):/workdir/project nrfassettracker/nrfconnect-sdk:v1.9-branch ./script/build nrf52840 USB_trans -DOT_BOOTLOADER=USB -DOT_THREAD_VERSION=1.2
+docker run --rm -u $(id -u):$(id -g) -v $(pwd):/workdir/project nrfassettracker/nrfconnect-sdk:v1.9-branch arm-none-eabi-objcopy -O ihex build/bin/ot-rcp build/bin/ot-rcp.hex
+docker run --rm -u $(id -u):$(id -g) -v $(pwd):/workdir/project nrfassettracker/nrfconnect-sdk:v1.9-branch nrfutil pkg generate --hw-version 52 --sd-req=0x00 --application build/bin/ot-rcp.hex --application-version 1 build/bin/ot-rcp.zip
+docker run --rm -u $(id -u):$(id -g) -v $(pwd):/workdir/project --group-add 20 --device /dev/ttyACM2 --device /dev/bus/usb nrfassettracker/nrfconnect-sdk:v1.9-branch nrfutil dfu usb-serial -pkg build/bin/ot-rcp.zip -p /dev/ttyACM2
+```
+
+Related documentation: https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/matter/openthread_rcp_nrf_dongle.html
+
 # Battery Life
 
 ## Power consumption
