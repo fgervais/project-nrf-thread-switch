@@ -78,6 +78,7 @@ Related documentation: https://developer.nordicsemi.com/nRF_Connect_SDK/doc/late
 ### Start OTBR
 
 ```
+sudo modprobe ip6table_filter
 docker run --sysctl "net.ipv6.conf.all.disable_ipv6=0 net.ipv4.conf.all.forwarding=1 net.ipv6.conf.all.forwarding=1" -p 8080:80 --volume /dev/ttyACM0:/dev/ttyACM0 --privileged openthread/otbr --radio-url spinel+hdlc+uart:///dev/ttyACM0 --nat64-prefix "fd00:64::/96"
 ```
 
