@@ -52,11 +52,13 @@ rm -rf build/
 ## Flash
 
 ```bash
-nrfutil pkg generate --hw-version 52 --sd-req=0x00 \
+cd application
+docker-compose run nrf nrfutil pkg generate \
+        --hw-version 52 --sd-req=0x00 \
         --application build/zephyr/zephyr.hex \
         --application-version 1 first.zip
 
-nrfutil dfu usb-serial -pkg first.zip -p /dev/ttyACM0
+docker-compose run nrf nrfutil dfu usb-serial -pkg first.zip -p /dev/ttyACM0
 ```
 
 # Hardware
