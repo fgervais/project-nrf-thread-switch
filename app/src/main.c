@@ -25,6 +25,9 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 #define APP_CONNECT_TRIES 10
 #define APP_MQTT_BUFFER_SIZE 128
 
+// #define MQTT_TOPIC "home/room/julie/switch/light/state"
+#define MQTT_TOPIC "home/room/computer/switch/table_light/state"
+
 
 static uint8_t rx_buffer[APP_MQTT_BUFFER_SIZE];
 static uint8_t tx_buffer[APP_MQTT_BUFFER_SIZE];
@@ -156,7 +159,7 @@ static char *get_mqtt_payload(enum mqtt_qos qos)
 
 static char *get_mqtt_topic(void)
 {
-	return "home/room/julie/switch/light/state";
+	return MQTT_TOPIC;
 }
 
 static int publish(struct mqtt_client *client, enum mqtt_qos qos)
