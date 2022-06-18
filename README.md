@@ -53,7 +53,8 @@ docker-compose run nrf nrfutil pkg generate \
         --application build/zephyr/zephyr.hex \
         --application-version 1 first.zip
 
-docker-compose run nrf nrfutil dfu usb-serial -pkg first.zip -p /dev/ttyACM0
+docker-compose -f docker-compose.yml -f docker-compose.device.yml run nrf \
+        nrfutil dfu usb-serial -pkg first.zip -p /dev/ttyACM0
 ```
 
 # Hardware
