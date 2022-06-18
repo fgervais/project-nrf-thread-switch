@@ -3,6 +3,7 @@
 #include <devicetree.h>
 #include <drivers/gpio.h>
 #include <event_manager.h>
+#include <pm/device.h>
 
 #include <logging/log.h>
 LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
@@ -332,7 +333,7 @@ void main(void)
 	LOG_INF("****************************************");
 
 	k_sleep(K_SECONDS(3));
-	pm_device_state_set(cons, PM_DEVICE_STATE_SUSPENDED);
+	pm_device_action_run(cons, PM_DEVICE_STATE_SUSPENDED);
 
 	LOG_INF("PM_DEVICE_ACTION_SUSPEND");
 }

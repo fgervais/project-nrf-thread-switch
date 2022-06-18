@@ -1,7 +1,7 @@
 version: '3'
 services:
   nrf:
-    image: nordicplayground/nrfconnect-sdk:v1.8-branch
+    image: nordicplayground/nrfconnect-sdk:v1.9-branch
     user: ${UID:-1000}:${GID:-1000}
     volumes:
       - ..:/workdir/project
