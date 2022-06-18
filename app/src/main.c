@@ -291,24 +291,13 @@ static int process_mqtt_and_sleep(struct mqtt_client *client, int timeout)
 
 static int publisher(void)
 {
-	int i, rc, r = 0;
+	int rc, r = 0;
 
 	LOG_INF("attempting to connect: ");
 	rc = try_to_connect(&client_ctx);
 	PRINT_RESULT("try_to_connect", rc);
 	if (rc != 0)
 		return -1;
-
-	i = 0;
-
-	rc = mqtt_ping(&client_ctx);
-	PRINT_RESULT("mqtt_ping", rc);
-	if (rc != 0)
-		goto err;
-
-	rc = process_mqtt_and_sleep(&client_ctx, APP_SLEEP_MSECS);
-	if (rc != 0)
-		goto err;
 
 	rc = publish(&client_ctx, MQTT_QOS_0_AT_MOST_ONCE);
 	PRINT_RESULT("mqtt_publish", rc);
