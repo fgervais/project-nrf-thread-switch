@@ -16,8 +16,6 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 #include <caf/events/module_state_event.h>
 #include <caf/events/button_event.h>
 
-#define CONSOLE_LABEL DT_LABEL(DT_CHOSEN(zephyr_console))
-
 #define SERVER_ADDR "fd00:64::192.168.2.159"
 #define SERVER_PORT 1883
 #define MQTT_CLIENTID "zephyr_publisher"
@@ -320,7 +318,7 @@ err:
 
 void main(void)
 {
-	const struct device *cons = device_get_binding(CONSOLE_LABEL);
+	const struct device *cons = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
 
 	if (app_event_manager_init()) {
 		LOG_ERR("Event manager not initialized");
@@ -333,7 +331,7 @@ void main(void)
 	LOG_INF("****************************************");
 
 	k_sleep(K_SECONDS(3));
-	pm_device_action_run(cons, PM_DEVICE_STATE_SUSPENDED);
+	pm_device_action_run(cons, PM_DEVICE_ACTION_SUSPEND);
 
 	LOG_INF("PM_DEVICE_ACTION_SUSPEND");
 }
