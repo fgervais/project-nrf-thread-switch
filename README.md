@@ -7,7 +7,7 @@
 ```bash
 mkdir project-nrf-connect-test
 cd project-nrf-connect-test
-docker run --rm -it -u $(id -u):$(id -g) -v $(pwd):/workdir/project coderbyheart/fw-nrfconnect-nrf-docker:v1.8-branch bash
+docker run --rm -it -u $(id -u):$(id -g) -v $(pwd):/workdir/project nordicplayground/nrfconnect-sdk:v2.0-branch bash
 west init -m https://github.com/fgervais/project-nrf-thread-switch.git .
 west update
 ```
