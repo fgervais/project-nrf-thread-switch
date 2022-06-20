@@ -2,7 +2,7 @@
 #include <device.h>
 #include <devicetree.h>
 #include <drivers/gpio.h>
-#include <event_manager.h>
+#include <app_event_manager.h>
 #include <pm/device.h>
 
 #include <logging/log.h>
@@ -322,7 +322,7 @@ void main(void)
 {
 	const struct device *cons = device_get_binding(CONSOLE_LABEL);
 
-	if (event_manager_init()) {
+	if (app_event_manager_init()) {
 		LOG_ERR("Event manager not initialized");
 	} else {
 		module_set_state(MODULE_STATE_READY);
@@ -338,7 +338,7 @@ void main(void)
 	LOG_INF("PM_DEVICE_ACTION_SUSPEND");
 }
 
-static bool event_handler(const struct event_header *eh)
+static bool event_handler(const struct app_event_header *eh)
 {
 	const struct button_event *evt;
 
@@ -353,5 +353,5 @@ static bool event_handler(const struct event_header *eh)
 	return true;
 }
 
-EVENT_LISTENER(MODULE, event_handler);
-EVENT_SUBSCRIBE(MODULE, button_event);
+APP_EVENT_LISTENER(MODULE, event_handler);
+APP_EVENT_SUBSCRIBE(MODULE, button_event);
