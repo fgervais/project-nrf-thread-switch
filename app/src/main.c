@@ -342,7 +342,7 @@ void main(void)
 	LOG_INF("****************************************");
 
 	k_sleep(K_SECONDS(3));
-	pm_device_action_run(cons, PM_DEVICE_ACTION_SUSPEND);
+	// pm_device_action_run(cons, PM_DEVICE_ACTION_SUSPEND);
 
 	LOG_INF("PM_DEVICE_ACTION_SUSPEND");
 }
