@@ -3,7 +3,9 @@
 #include <devicetree.h>
 #include <drivers/gpio.h>
 #include <app_event_manager.h>
+#include <openthread/thread.h>
 #include <pm/device.h>
+#include <zephyr/net/openthread.h>
 
 #include <logging/log.h>
 LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
@@ -20,7 +22,7 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 #define SERVER_PORT 1883
 #define MQTT_CLIENTID "zephyr_publisher"
 #define APP_CONNECT_TIMEOUT_MS 2000
-#define APP_SLEEP_MSECS 500
+#define APP_SLEEP_MSECS 50
 #define APP_CONNECT_TRIES 10
 #define APP_MQTT_BUFFER_SIZE 128
 
@@ -71,6 +73,8 @@ void mqtt_evt_handler(struct mqtt_client *const client,
 {
 	int err;
 
+	otInstance *instance = openthread_get_default_instance();
+
 	switch (evt->type) {
 	case MQTT_EVT_CONNACK:
 		if (evt->result != 0) {
@@ -88,6 +92,9 @@ void mqtt_evt_handler(struct mqtt_client *const client,
 
 		connected = false;
 		clear_fds();
+
+		k_sleep(K_MSEC(50));
+		otLinkSetPollPeriod(instance, 0);
 
 		break;
 
@@ -292,7 +299,11 @@ static int publisher(void)
 {
 	int rc, r = 0;
 
+	otInstance *instance = openthread_get_default_instance();
+
 	LOG_INF("attempting to connect: ");
+	otLinkSetPollPeriod(instance, 10);
+
 	rc = try_to_connect(&client_ctx);
 	PRINT_RESULT("try_to_connect", rc);
 	if (rc != 0)
@@ -303,7 +314,7 @@ static int publisher(void)
 	if (rc != 0)
 		goto err;
 
-	rc = process_mqtt_and_sleep(&client_ctx, APP_SLEEP_MSECS);
+	rc = process_mqtt_and_sleep(&client_ctx, 0);
 	if (rc != 0)
 		goto err;
 
