@@ -1,4 +1,3 @@
-version: '3'
 services:
   nrf:
     image: nordicplayground/nrfconnect-sdk:v2.0-branch
