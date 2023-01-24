@@ -27,14 +27,14 @@ CONFIG_OPENTHREAD_NETWORKKEY="00:11:22:33:44:55:66:77:88:99:aa:bb:cc:dd:ee:ff"
 
 ```bash
 cd application
-docker-compose run nrf west build -b nrf52840dongle_nrf52840 -s app
+docker compose run --rm nrf west build -b nrf52840dongle_nrf52840 -s app
 ```
 
 ## menuconfig
 
 ```bash
 cd application
-docker-compose run nrf west build -b nrf52840dongle_nrf52840 -s app -t menuconfig
+docker compose run --rm nrf west build -b nrf52840dongle_nrf52840 -s app -t menuconfig
 ```
 
 ## Clean
@@ -44,17 +44,32 @@ cd application
 rm -rf build/
 ```
 
-## Flash
+## Update
 
 ```bash
 cd application
-docker-compose run nrf nrfutil pkg generate \
+docker compose run --rm nrf west update
+```
+
+## Flash
+
+### nrfutil
+
+```bash
+cd application
+docker compose run --rm nrf nrfutil pkg generate \
         --hw-version 52 --sd-req=0x00 \
         --application build/zephyr/zephyr.hex \
         --application-version 1 first.zip
 
-docker-compose -f docker-compose.yml -f docker-compose.device.yml run nrf \
+docker compose -f docker-compose.yml -f docker-compose.device.yml run nrf \
         nrfutil dfu usb-serial -pkg first.zip -p /dev/ttyACM0
+```
+
+### pyocd
+```bash
+cd application
+pyocd flash -e sector -t nrf52840 -f 4000000 build/zephyr/zephyr.hex
 ```
 
 # Hardware
