@@ -8,6 +8,10 @@ manifest:
       remote: ncs
       revision: v2.0.0
       import: true
+    - name: zephyr-my-boards
+      url: https://github.com/fgervais/zephyr-my-boards
+      revision: master
+      path: myboards
   self:
     path: application
 
