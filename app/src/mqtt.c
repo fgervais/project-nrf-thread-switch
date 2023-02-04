@@ -16,7 +16,7 @@ LOG_MODULE_REGISTER(mqtt, LOG_LEVEL_DBG);
 #define MQTT_CLIENTID "zephyr_publisher"
 #define APP_CONNECT_TIMEOUT_MS 2000
 #define APP_SLEEP_MSECS 50
-#define APP_CONNECT_TRIES 10
+#define APP_CONNECT_TRIES 2
 #define APP_MQTT_BUFFER_SIZE 128
 
 // #define MQTT_TOPIC "home/room/julie/switch/light/state"
@@ -223,14 +223,21 @@ static void client_init(struct mqtt_client *client)
 static int try_to_connect(struct mqtt_client *client)
 {
 	int rc, i = 0;
+	otInstance *instance = openthread_get_default_instance();
 
 	while (i++ < APP_CONNECT_TRIES && !connected) {
+
+		otLinkSetPollPeriod(instance, 10);
 
 		client_init(client);
 
 		rc = mqtt_connect(client);
 		if (rc != 0) {
 			PRINT_RESULT("mqtt_connect", rc);
+
+			k_sleep(K_MSEC(50));
+			otLinkSetPollPeriod(instance, 0);
+
 			k_sleep(K_MSEC(APP_SLEEP_MSECS));
 			continue;
 		}
@@ -293,10 +300,7 @@ int mqtt_publisher(void)
 {
 	int rc, r = 0;
 
-	otInstance *instance = openthread_get_default_instance();
-
 	LOG_INF("attempting to connect: ");
-	otLinkSetPollPeriod(instance, 10);
 
 	rc = try_to_connect(&client_ctx);
 	PRINT_RESULT("try_to_connect", rc);
