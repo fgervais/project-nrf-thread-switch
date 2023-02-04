@@ -2,10 +2,8 @@
 #include <device.h>
 #include <devicetree.h>
 #include <drivers/gpio.h>
-#include <openthread/thread.h>
 #include <pm/device.h>
 #include <zephyr.h>
-#include <zephyr/net/openthread.h>
 
 #include <logging/log.h>
 LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
