@@ -27,7 +27,7 @@ void main(void)
 	}
 
 	// Wait a bit for Thread to initialize
-	k_sleep(K_MSEC(100));
+	k_sleep(K_MSEC(500));
 
 	while (1) {
 		dns_resolve_finished = false;
