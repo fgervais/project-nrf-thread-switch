@@ -5,6 +5,7 @@
 #include <app_event_manager.h>
 #include <openthread/thread.h>
 #include <pm/device.h>
+#include <zephyr/net/dns_resolve.h>
 #include <zephyr/net/openthread.h>
 
 #include <logging/log.h>
@@ -18,7 +19,6 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 #include <caf/events/module_state_event.h>
 #include <caf/events/button_event.h>
 
-#define SERVER_ADDR "fd00:64::192.168.2.159"
 #define SERVER_PORT 1883
 #define MQTT_CLIENTID "zephyr_publisher"
 #define APP_CONNECT_TIMEOUT_MS 2000
@@ -29,9 +29,14 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 // #define MQTT_TOPIC "home/room/julie/switch/light/state"
 #define MQTT_TOPIC "home/room/computer/switch/table_light/state"
 
+#define DNS_TIMEOUT (2 * MSEC_PER_SEC)
+
 
 static uint8_t rx_buffer[APP_MQTT_BUFFER_SIZE];
 static uint8_t tx_buffer[APP_MQTT_BUFFER_SIZE];
+
+char *mqtt_server_addr = NULL;
+bool dns_resolve_finished = false;
 
 static struct mqtt_client client_ctx;
 static struct sockaddr_storage broker;
@@ -40,6 +45,89 @@ static int nfds;
 static bool connected;
 
 static bool switch_state;
+
+
+void dns_result_cb(enum dns_resolve_status status,
+		   struct dns_addrinfo *info,
+		   void *user_data)
+{
+	char hr_addr[NET_IPV6_ADDR_LEN];
+	char *hr_family;
+
+	otInstance *instance = openthread_get_default_instance();
+
+
+	k_sleep(K_MSEC(50));
+	otLinkSetPollPeriod(instance, 0);
+
+	switch (status) {
+	case DNS_EAI_CANCELED:
+		LOG_INF("DNS query was canceled");
+		goto out;
+	case DNS_EAI_FAIL:
+		LOG_INF("DNS resolve failed");
+		goto out;
+	case DNS_EAI_NODATA:
+		LOG_INF("Cannot resolve address");
+		goto out;
+	case DNS_EAI_ALLDONE:
+		LOG_INF("DNS resolving finished");
+		goto out;
+	case DNS_EAI_INPROGRESS:
+		break;
+	default:
+		LOG_INF("DNS resolving error (%d)", status);
+		goto out;
+	}
+
+	if (!info) {
+		goto out;
+	}
+
+	if (info->ai_family == AF_INET) {
+		// hr_family = "IPv4";
+		// mqtt_server_addr = &net_sin(&info->ai_addr)->sin_addr;
+		LOG_ERR("We need an ipv6 address but received ipv4");
+	} else if (info->ai_family == AF_INET6) {
+		hr_family = "IPv6";
+		mqtt_server_addr = (char *)&net_sin6(&info->ai_addr)->sin6_addr;
+	} else {
+		LOG_ERR("Invalid IP address family %d", info->ai_family);
+		goto out;
+	}
+
+	LOG_INF("%s %s address: %s", user_data ? (char *)user_data : "<null>",
+		hr_family,
+		net_addr_ntop(info->ai_family, mqtt_server_addr,
+					 hr_addr, sizeof(hr_addr)));
+out:
+	dns_resolve_finished = true;
+}
+
+static void do_ipv6_lookup(void)
+{
+	static const char *query = "home.home.arpa";
+	static uint16_t dns_id;
+	int ret;
+
+	otInstance *instance = openthread_get_default_instance();
+
+
+	otLinkSetPollPeriod(instance, 10);
+
+	ret = dns_get_addr_info(query,
+				DNS_QUERY_TYPE_AAAA,
+				&dns_id,
+				dns_result_cb,
+				(void *)query,
+				DNS_TIMEOUT);
+	if (ret < 0) {
+		LOG_ERR("Cannot resolve IPv6 address (%d)", ret);
+		return;
+	}
+
+	LOG_DBG("DNS id %u", dns_id);
+}
 
 
 static void prepare_fds(struct mqtt_client *client)
@@ -93,9 +181,6 @@ void mqtt_evt_handler(struct mqtt_client *const client,
 		connected = false;
 		clear_fds();
 
-		k_sleep(K_MSEC(50));
-		otLinkSetPollPeriod(instance, 0);
-
 		break;
 
 	case MQTT_EVT_PUBACK:
@@ -145,6 +230,9 @@ void mqtt_evt_handler(struct mqtt_client *const client,
 	default:
 		break;
 	}
+
+	k_sleep(K_MSEC(50));
+	otLinkSetPollPeriod(instance, 0);
 }
 
 static char *get_mqtt_payload(enum mqtt_qos qos)
@@ -197,7 +285,7 @@ static void broker_init(void)
 
 	broker6->sin6_family = AF_INET6;
 	broker6->sin6_port = htons(SERVER_PORT);
-	zsock_inet_pton(AF_INET6, SERVER_ADDR, &broker6->sin6_addr);
+	zsock_inet_pton(AF_INET6, mqtt_server_addr, &broker6->sin6_addr);
 }
 
 static void client_init(struct mqtt_client *client)
@@ -335,6 +423,20 @@ void main(void)
 		LOG_ERR("Event manager not initialized");
 	} else {
 		module_set_state(MODULE_STATE_READY);
+	}
+
+	// Wait a bit for Thread to initialize
+	k_sleep(K_MSEC(100));
+
+	while (1) {
+		dns_resolve_finished = false;
+		do_ipv6_lookup();
+
+		while (!dns_resolve_finished)
+			k_sleep(K_MSEC(100));
+
+		if (mqtt_server_addr != NULL)
+			break;
 	}
 
 	LOG_INF("****************************************");
