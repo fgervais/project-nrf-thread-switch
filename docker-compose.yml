@@ -1,7 +1,6 @@
-version: '3'
 services:
   nrf:
-    image: nordicplayground/nrfconnect-sdk:v1.8-branch
+    image: nordicplayground/nrfconnect-sdk:v2.0-branch
     user: ${UID:-1000}:${GID:-1000}
     volumes:
       - ..:/workdir/project
@@ -12,4 +11,5 @@ services:
       - /tmp
     environment:
       - HOME=/tmp
+      - ZEPHYR_BASE=/workdir/project/zephyr
     working_dir: /workdir/project/application
