@@ -32,7 +32,7 @@ static struct zsock_pollfd fds[1];
 static int nfds;
 static bool connected;
 
-char *mqtt_server_addr = NULL;
+char mqtt_server_addr[NET_IPV6_ADDR_LEN];;
 static bool switch_state;
 
 
@@ -188,6 +188,8 @@ static int publish(struct mqtt_client *client, enum mqtt_qos qos)
 static void broker_init(void)
 {
 	struct sockaddr_in6 *broker6 = (struct sockaddr_in6 *)&broker;
+
+	LOG_INF("server address: %s", mqtt_server_addr);
 
 	broker6->sin6_family = AF_INET6;
 	broker6->sin6_port = htons(SERVER_PORT);

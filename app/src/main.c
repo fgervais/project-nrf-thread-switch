@@ -36,8 +36,9 @@ void main(void)
 		while (!dns_resolve_finished)
 			k_sleep(K_MSEC(100));
 
-		if (dns_resolve_addr != NULL) {
-			mqtt_server_addr = dns_resolve_addr;
+		if (dns_resolve_success) {
+			strncpy(mqtt_server_addr, dns_resolve_last_resolve_addr,
+				sizeof(mqtt_server_addr));
 			break;
 		}
 	}

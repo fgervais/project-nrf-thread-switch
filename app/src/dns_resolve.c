@@ -8,17 +8,17 @@ LOG_MODULE_REGISTER(dns_resolve, LOG_LEVEL_DBG);
 
 #define DNS_TIMEOUT (2 * MSEC_PER_SEC)
 
-
-char *dns_resolve_addr;
-bool dns_resolve_finished = false;
+char dns_resolve_last_resolve_addr[NET_IPV6_ADDR_LEN];
+bool dns_resolve_finished;
+bool dns_resolve_success;
 
 
 static void dns_result_cb(enum dns_resolve_status status,
 		   struct dns_addrinfo *info,
 		   void *user_data)
 {
-	char hr_addr[NET_IPV6_ADDR_LEN];
 	char *hr_family;
+	void *addr;
 
 	otInstance *instance = openthread_get_default_instance();
 
@@ -51,12 +51,12 @@ static void dns_result_cb(enum dns_resolve_status status,
 	}
 
 	if (info->ai_family == AF_INET) {
-		// hr_family = "IPv4";
-		// dns_resolve_addr = &net_sin(&info->ai_addr)->sin_addr;
+		hr_family = "IPv4";
+		addr = &net_sin(&info->ai_addr)->sin_addr;
 		LOG_ERR("We need an ipv6 address but received ipv4");
 	} else if (info->ai_family == AF_INET6) {
 		hr_family = "IPv6";
-		dns_resolve_addr = (char *)&net_sin6(&info->ai_addr)->sin6_addr;
+		addr = (char *)&net_sin6(&info->ai_addr)->sin6_addr;
 	} else {
 		LOG_ERR("Invalid IP address family %d", info->ai_family);
 		goto out;
@@ -64,8 +64,11 @@ static void dns_result_cb(enum dns_resolve_status status,
 
 	LOG_INF("%s %s address: %s", user_data ? (char *)user_data : "<null>",
 		hr_family,
-		net_addr_ntop(info->ai_family, dns_resolve_addr,
-					 hr_addr, sizeof(hr_addr)));
+		net_addr_ntop(info->ai_family, addr,
+			dns_resolve_last_resolve_addr,
+			sizeof(dns_resolve_last_resolve_addr)));
+
+	dns_resolve_success = true;
 out:
 	dns_resolve_finished = true;
 }
@@ -78,6 +81,8 @@ void dns_resolve_do_ipv6_lookup(void)
 
 	otInstance *instance = openthread_get_default_instance();
 
+	dns_resolve_finished = false;
+	dns_resolve_success = false;
 
 	otLinkSetPollPeriod(instance, 10);
 
