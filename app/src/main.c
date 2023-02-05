@@ -47,10 +47,10 @@ void main(void)
 	LOG_INF("MAIN DONE");
 	LOG_INF("****************************************");
 
-	k_sleep(K_SECONDS(3));
+	//k_sleep(K_SECONDS(3));
 	// pm_device_action_run(cons, PM_DEVICE_ACTION_SUSPEND);
 
-	LOG_INF("PM_DEVICE_ACTION_SUSPEND");
+	//LOG_INF("PM_DEVICE_ACTION_SUSPEND");
 }
 
 static bool event_handler(const struct app_event_header *eh)
