@@ -87,10 +87,18 @@ https://github.com/fgervais/project-nrf-thread-switch_hardware
 ```
 git clone --recursive https://github.com/openthread/ot-nrf528xx.git
 cd ot-nrf528xx
-docker run --rm -u $(id -u):$(id -g) -v $(pwd):/workdir/project nordicplayground/nrfconnect-sdk:v1.9-branch ./script/build nrf52840 USB_trans -DOT_BOOTLOADER=USB -DOT_THREAD_VERSION=1.2
-docker run --rm -u $(id -u):$(id -g) -v $(pwd):/workdir/project nordicplayground/nrfconnect-sdk:v1.9-branch arm-none-eabi-objcopy -O ihex build/bin/ot-rcp build/bin/ot-rcp.hex
-docker run --rm -u $(id -u):$(id -g) -v $(pwd):/workdir/project nordicplayground/nrfconnect-sdk:v1.9-branch nrfutil pkg generate --hw-version 52 --sd-req=0x00 --application build/bin/ot-rcp.hex --application-version 1 build/bin/ot-rcp.zip
-docker run --rm -u $(id -u):$(id -g) -v $(pwd):/workdir/project --group-add 20 --device /dev/ttyACM2 --device /dev/bus/usb nordicplayground/nrfconnect-sdk:v1.9-branch nrfutil dfu usb-serial -pkg build/bin/ot-rcp.zip -p /dev/ttyACM2
+
+wget https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2020q2/gcc-arm-none-eabi-9-2020-q2-update-"$(arch)"-linux.tar.bz2
+tar xf gcc-arm-none-eabi-9-2020-q2-update-x86_64-linux.tar.bz2
+
+docker run --rm -u $(id -u):$(id -g) -v $(pwd):/workdir/project nordicplayground/nrfconnect-sdk:v2.0-branch \
+        bash -c 'PATH=$PATH:/workdir/project/gcc-arm-none-eabi-9-2020-q2-update/bin ./script/build nrf52840 USB_trans -DOT_BOOTLOADER=USB'
+docker run --rm -u $(id -u):$(id -g) -v $(pwd):/workdir/project nordicplayground/nrfconnect-sdk:v2.0-branch \
+        bash -c 'PATH=$PATH:/workdir/project/gcc-arm-none-eabi-9-2020-q2-update/bin arm-none-eabi-objcopy -O ihex build/bin/ot-rcp build/bin/ot-rcp.hex'
+docker run --rm -u $(id -u):$(id -g) -v $(pwd):/workdir/project nordicplayground/nrfconnect-sdk:v2.0-branch \
+        nrfutil pkg generate --hw-version 52 --sd-req=0x00 --application build/bin/ot-rcp.hex --application-version 1 build/bin/ot-rcp.zip
+docker run --rm -u $(id -u):$(id -g) -v $(pwd):/workdir/project --group-add 20 --device /dev/ttyACM2 --device /dev/bus/usb nordicplayground/nrfconnect-sdk:v2.0-branch \
+        nrfutil dfu usb-serial -pkg build/bin/ot-rcp.zip -p /dev/ttyACM2
 ```
 
 Related documentation: https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/matter/openthread_rcp_nrf_dongle.html
