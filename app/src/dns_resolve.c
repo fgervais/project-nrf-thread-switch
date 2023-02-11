@@ -94,6 +94,8 @@ void dns_resolve_do_ipv6_lookup(void)
 				DNS_TIMEOUT);
 	if (ret < 0) {
 		LOG_ERR("Cannot resolve IPv6 address (%d)", ret);
+		dns_resolve_finished = true;
+		otLinkSetPollPeriod(instance, 0);
 		return;
 	}
 
