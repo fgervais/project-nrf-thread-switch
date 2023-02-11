@@ -1,11 +1,11 @@
-#include <net/socket.h>
-#include <net/mqtt.h>
-#include <random/rand32.h>
+#include <zephyr/net/socket.h>
+#include <zephyr/net/mqtt.h>
+#include <zephyr/random/rand32.h>
 #include <openthread/thread.h>
 
 #include <zephyr/net/openthread.h>
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(mqtt, LOG_LEVEL_DBG);
 
 

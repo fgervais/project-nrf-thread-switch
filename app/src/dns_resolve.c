@@ -2,7 +2,7 @@
 #include <zephyr/net/openthread.h>
 #include <zephyr/net/dns_resolve.h>
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(dns_resolve, LOG_LEVEL_DBG);
 
 

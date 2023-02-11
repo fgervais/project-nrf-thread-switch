@@ -1,11 +1,7 @@
 #include <app_event_manager.h>
-#include <device.h>
-#include <devicetree.h>
-#include <drivers/gpio.h>
-#include <pm/device.h>
-#include <zephyr.h>
-
-#include <logging/log.h>
+#include <zephyr/drivers/gpio.h>
+#include <zephyr/pm/device.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 
 #define MODULE main
