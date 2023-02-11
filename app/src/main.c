@@ -10,6 +10,7 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 
 #include "mqtt.h"
 #include "dns_resolve.h"
+#include "openthread.h"
 
 
 void main(void)
@@ -22,8 +23,12 @@ void main(void)
 		module_set_state(MODULE_STATE_READY);
 	}
 
-	// Wait a bit for Thread to initialize
-	k_sleep(K_MSEC(500));
+	openthread_enable_ready_flag();
+
+	while (!openthread_ready)
+		k_sleep(K_MSEC(100));
+	// Something else is not ready, not sure what
+	k_sleep(K_MSEC(100));
 
 	while (1) {
 		dns_resolve_finished = false;
