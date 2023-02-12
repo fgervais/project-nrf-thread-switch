@@ -10,6 +10,7 @@ LOG_MODULE_REGISTER(mqtt, LOG_LEVEL_DBG);
 
 
 #include "mqtt.h"
+#include "openthread.h"
 
 
 #define SERVER_PORT 1883
@@ -66,8 +67,6 @@ void mqtt_evt_handler(struct mqtt_client *const client,
 		      const struct mqtt_evt *evt)
 {
 	int err;
-
-	otInstance *instance = openthread_get_default_instance();
 
 	switch (evt->type) {
 	case MQTT_EVT_CONNACK:
@@ -138,7 +137,7 @@ void mqtt_evt_handler(struct mqtt_client *const client,
 	}
 
 	k_sleep(K_MSEC(50));
-	otLinkSetPollPeriod(instance, 0);
+	openthread_set_normal_latency();
 }
 
 static char *get_mqtt_payload(enum mqtt_qos qos)
@@ -225,11 +224,10 @@ static void client_init(struct mqtt_client *client)
 static int try_to_connect(struct mqtt_client *client)
 {
 	int rc, i = 0;
-	otInstance *instance = openthread_get_default_instance();
 
 	while (i++ < APP_CONNECT_TRIES && !connected) {
 
-		otLinkSetPollPeriod(instance, 10);
+		openthread_set_low_latency();
 
 		client_init(client);
 
@@ -238,7 +236,7 @@ static int try_to_connect(struct mqtt_client *client)
 			PRINT_RESULT("mqtt_connect", rc);
 
 			k_sleep(K_MSEC(50));
-			otLinkSetPollPeriod(instance, 0);
+			openthread_set_normal_latency();
 
 			k_sleep(K_MSEC(APP_SLEEP_MSECS));
 			continue;
