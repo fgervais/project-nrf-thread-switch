@@ -12,8 +12,6 @@ bool openthread_ready = false;
 // 				    void *user_data)
 static void on_thread_state_changed(uint32_t flags, void *context)
 {
-	struct openthread_context *ot_context = context;
-
 	if (flags & OT_CHANGED_IP6_ADDRESS_ADDED) {
 		LOG_INF("openthread ready!");
 		openthread_ready = true;
