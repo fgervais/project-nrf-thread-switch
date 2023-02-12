@@ -27,7 +27,7 @@ void main(void)
 
 	while (!openthread_ready)
 		k_sleep(K_MSEC(100));
-	openthread_set_csl_period_ms(500);
+	// openthread_set_csl_period_ms(1000);
 
 	// Something else is not ready, not sure what
 	k_sleep(K_MSEC(100));
