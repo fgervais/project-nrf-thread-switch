@@ -1,11 +1,7 @@
 #include <app_event_manager.h>
-#include <device.h>
-#include <devicetree.h>
-#include <drivers/gpio.h>
-#include <pm/device.h>
-#include <zephyr.h>
-
-#include <logging/log.h>
+#include <zephyr/drivers/gpio.h>
+#include <zephyr/pm/device.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 
 #define MODULE main
@@ -14,6 +10,7 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 
 #include "mqtt.h"
 #include "dns_resolve.h"
+#include "openthread.h"
 
 
 void main(void)
@@ -26,8 +23,14 @@ void main(void)
 		module_set_state(MODULE_STATE_READY);
 	}
 
-	// Wait a bit for Thread to initialize
-	k_sleep(K_MSEC(500));
+	openthread_enable_ready_flag();
+
+	while (!openthread_ready)
+		k_sleep(K_MSEC(100));
+	// openthread_set_csl_period_ms(1000);
+
+	// Something else is not ready, not sure what
+	k_sleep(K_MSEC(100));
 
 	while (1) {
 		dns_resolve_finished = false;

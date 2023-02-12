@@ -2,8 +2,10 @@
 #include <zephyr/net/openthread.h>
 #include <zephyr/net/dns_resolve.h>
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(dns_resolve, LOG_LEVEL_DBG);
+
+#include "openthread.h"
 
 
 #define DNS_TIMEOUT (2 * MSEC_PER_SEC)
@@ -20,11 +22,8 @@ static void dns_result_cb(enum dns_resolve_status status,
 	char *hr_family;
 	void *addr;
 
-	otInstance *instance = openthread_get_default_instance();
-
-
 	k_sleep(K_MSEC(50));
-	otLinkSetPollPeriod(instance, 0);
+	openthread_set_normal_latency();
 
 	switch (status) {
 	case DNS_EAI_CANCELED:
@@ -79,12 +78,10 @@ void dns_resolve_do_ipv6_lookup(void)
 	static uint16_t dns_id;
 	int ret;
 
-	otInstance *instance = openthread_get_default_instance();
-
 	dns_resolve_finished = false;
 	dns_resolve_success = false;
 
-	otLinkSetPollPeriod(instance, 10);
+	openthread_set_low_latency();
 
 	ret = dns_get_addr_info(query,
 				DNS_QUERY_TYPE_AAAA,
@@ -94,6 +91,8 @@ void dns_resolve_do_ipv6_lookup(void)
 				DNS_TIMEOUT);
 	if (ret < 0) {
 		LOG_ERR("Cannot resolve IPv6 address (%d)", ret);
+		dns_resolve_finished = true;
+		openthread_set_normal_latency();
 		return;
 	}
 
