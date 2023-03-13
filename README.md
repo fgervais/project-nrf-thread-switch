@@ -27,14 +27,14 @@ CONFIG_OPENTHREAD_NETWORKKEY="00:11:22:33:44:55:66:77:88:99:aa:bb:cc:dd:ee:ff"
 
 ```bash
 cd application
-docker compose run --rm nrf west build -b nrf52840dongle_nrf52840 -s app
+docker compose run --rm nrf west build -b pink_panda -s app
 ```
 
 ## menuconfig
 
 ```bash
 cd application
-docker compose run --rm nrf west build -b nrf52840dongle_nrf52840 -s app -t menuconfig
+docker compose run --rm nrf west build -b pink_panda -s app -t menuconfig
 ```
 
 ## Clean
