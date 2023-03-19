@@ -81,8 +81,8 @@ pyocd flash -e sector -t nrf52840 -f 4000000 build/zephyr/zephyr.hex
 
 ![Finger](assets/img/assembled.jpg)
 
-https://github.com/fgervais/project-MS88SF3-breakout
-https://github.com/fgervais/project-nrf-thread-switch_hardware/tree/cardboard-button/cardboard-enclosure
+- https://github.com/fgervais/project-MS88SF3-breakout
+- https://github.com/fgervais/project-nrf-thread-switch_hardware/tree/cardboard-button/cardboard-enclosure
 
 ## Border Router
 
