@@ -1,5 +1,10 @@
 ![Finger](assets/img/finger.jpg)
 
+[Project Management](#project-management)
+[Hardware](#hardware)
+[Border Router](#border-router)
+[Battery Life](#battery-life)
+
 # Project Management
 
 ## Init
