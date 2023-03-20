@@ -1,5 +1,7 @@
 ![Finger](assets/img/finger.jpg)
 
+# Table of Contents
+
 - [Project Management](#project-management)
 - [Hardware](#hardware)
 - [Border Router](#border-router)
