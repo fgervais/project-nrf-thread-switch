@@ -13,7 +13,7 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 #include "openthread.h"
 
 
-void main(void)
+int main(void)
 {
 	const struct device *cons = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
 
@@ -54,6 +54,8 @@ void main(void)
 	pm_device_action_run(cons, PM_DEVICE_ACTION_SUSPEND);
 
 	LOG_INF("PM_DEVICE_ACTION_SUSPEND");
+
+	return 0;
 }
 
 static bool event_handler(const struct app_event_header *eh)
