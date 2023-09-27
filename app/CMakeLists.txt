@@ -10,7 +10,15 @@ set(OVERLAY_CONFIG "debug.conf")
 cmake_minimum_required(VERSION 3.20.0)
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
-project(app LANGUAGES C VERSION 1.0.0)
+execute_process(COMMAND git describe
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                OUTPUT_VARIABLE GIT_DESCRIBE
+                ERROR_QUIET)
+string(STRIP "${GIT_DESCRIBE}" GIT_DESCRIBE)
+STRING(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+"
+       VERSION "${GIT_DESCRIBE}")
+
+project(app LANGUAGES C VERSION ${VERSION})
 
 configure_file(app_version.h.in ${CMAKE_BINARY_DIR}/app/include/app_version.h)
 target_include_directories(app PRIVATE ${CMAKE_BINARY_DIR}/app/include src)

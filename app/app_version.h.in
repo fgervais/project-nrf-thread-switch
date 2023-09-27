@@ -19,11 +19,13 @@
 
 /** Application version. */
 #define APP_VERSION \
-	((APP_VERSION_MAJOR << 16) + \
-	 (APP_VERSION_MINOR << 8) + \
-	  APP_VERSION_PATCH)
+    ((APP_VERSION_MAJOR << 16) + \
+     (APP_VERSION_MINOR << 8) + \
+      APP_VERSION_PATCH)
 
 /** Application version (string). */
 #define APP_VERSION_STR "${PROJECT_VERSION}"
+
+#define APP_VERSION_FULL "${GIT_DESCRIBE}"
 
 #endif /* APP_VERSION_H_ */
