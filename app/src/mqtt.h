@@ -6,6 +6,4 @@
 
 extern char mqtt_server_addr[NET_IPV6_ADDR_LEN];
 
-int mqtt_publisher(void);
-
 #endif /* MQTT_H_ */
