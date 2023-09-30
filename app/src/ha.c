@@ -135,6 +135,7 @@ static const struct json_obj_descr switch_config_descr[] = {
 // Best practice for entities with a unique_id is to set <object_id> to
 // unique_id and omit the <node_id>.
 // https://www.home-assistant.io/integrations/mqtt/#discovery-topic
+#ifdef APP_HAS_SENSOR
 static int ha_send_sensor_discovery(const char *sensor_type,
 			     struct ha_sensor_config *conf)
 {
@@ -178,7 +179,9 @@ static int ha_send_sensor_discovery(const char *sensor_type,
 
 	return 0;
 }
+#endif
 
+#ifdef APP_HAS_SWITCH
 static int ha_send_switch_discovery(struct ha_switch_config *conf)
 {
 	int ret;
@@ -209,6 +212,7 @@ static int ha_send_switch_discovery(struct ha_switch_config *conf)
 
 	return 0;
 }
+#endif
 
 int ha_start(const char *device_id)
 {
@@ -276,6 +280,7 @@ int ha_set_online()
 // Other usefull links:
 // https://community.home-assistant.io/t/unique-id-and-object-id-are-being-ignored-in-my-mqtt-sensor/397368/14
 // https://community.home-assistant.io/t/wth-are-there-unique-id-and-entity-id/467623/9
+#ifdef APP_HAS_SENSOR
 int ha_register_sensor(struct ha_sensor *sensor)
 {
 	int ret;
@@ -387,3 +392,65 @@ int ha_send_binary_sensor_state(struct ha_sensor *sensor)
 
 	return 0;
 }
+#endif
+
+#ifdef APP_HAS_SWITCH
+int ha_register_switch(struct ha_sensor *sensor)
+{
+	int ret;
+	char brief_state_topic[HA_TOPIC_BUFFER_SIZE];
+	struct ha_switch_config ha_switch_config {
+		.base_path = mqtt_base_path,
+		.name = sensor->name,
+		.unique_id = sensor->unique_id,
+		.object_id = sensor->unique_id,
+		.device_class = sensor->device_class,
+		.availability_topic = "~/available",
+		.state_topic = brief_state_topic,
+		.command_topic = brief_state_topic,
+		.dev = DEVICE_CONFIG,
+	};
+
+	LOG_INF("📝 registering switch: %s", sensor->unique_id);
+
+	ret = snprintf(brief_state_topic, sizeof(brief_state_topic),
+		       "~/%s/%s/state",
+		       "switch", sensor->unique_id);
+	if (ret < 0 && ret >= sizeof(brief_state_topic)) {
+		LOG_ERR("Could not set brief_state_topic");
+		return -ENOMEM;
+	}
+
+	ret = snprintf(sensor->full_state_topic, sizeof(sensor->full_state_topic),
+		 "%s%s",
+		 mqtt_base_path,
+		 brief_state_topic + 1);
+	if (ret < 0 && ret >= sizeof(brief_state_topic)) {
+		LOG_ERR("Could not set full_state_topic");
+		return -ENOMEM;
+	}
+
+	LOG_INF("📖 send discovery");
+	ret = ha_send_sensor_discovery(sensor->type, &ha_sensor_config);
+	if (ret < 0) {
+		LOG_ERR("Could not send discovery");
+		return ret;
+	}
+
+	return 0;
+}
+
+int ha_send_binary_sensor_state(struct ha_sensor *sensor)
+{
+	int ret;
+
+	ret = mqtt_publish_to_topic(sensor->full_state_topic,
+		sensor->binary_state ? "ON" : "OFF", sensor->retain);
+	if (ret < 0) {
+		LOG_ERR("Count not publish to topic");
+		return ret;
+	}
+
+	return 0;
+}
+#endif
