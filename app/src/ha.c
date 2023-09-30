@@ -26,7 +26,7 @@ LOG_MODULE_REGISTER(home_assistant, LOG_LEVEL_DBG);
 #define DISCOVERY_TOPIC_FORMAT_STRING	"homeassistant/%s/%s/config"
 // #define DISCOVERY_TOPIC_FORMAT_STRING	"test/%s/%s/config"
 
-#define AIR_QUALITY_DEVICE {						\
+#define DEVICE_CONFIG {						\
 	.identifiers = device_id_hex_string,				\
 	.name = CONFIG_APP_DEVICE_NAME " - " CONFIG_APP_DEVICE_NICKNAME,	\
 	.sw_version = APP_VERSION_FULL,					\
@@ -296,7 +296,7 @@ int ha_register_sensor(struct ha_sensor *sensor)
 		.suggested_display_precision = sensor->suggested_display_precision,
 		.availability_topic = "~/available",
 		.state_topic = brief_state_topic,
-		.dev = AIR_QUALITY_DEVICE,
+		.dev = DEVICE_CONFIG,
 	};
 
 	LOG_INF("📝 registering sensor: %s", sensor->unique_id);
