@@ -14,14 +14,21 @@ LOG_MODULE_REGISTER(home_assistant, LOG_LEVEL_DBG);
 #define JSON_CONFIG_BUFFER_SIZE		1024
 #define UNIQUE_ID_BUFFER_SIZE		64
 
+#if defined(CONFIG_APP_DEV_TYPE_AIR_QUALITY)
 #define MQTT_BASE_PATH_FORMAT_STRING "air_quality/%s"
+#elif defined(CONFIG_APP_DEV_TYPE_SWITCH)
+#define MQTT_BASE_PATH_FORMAT_STRING "switch/%s"
+#else
+#error "No type defined"
+#endif
+
 #define LAST_WILL_TOPIC_FORMAT_STRING MQTT_BASE_PATH_FORMAT_STRING "/available"
 #define DISCOVERY_TOPIC_FORMAT_STRING	"homeassistant/%s/%s/config"
 // #define DISCOVERY_TOPIC_FORMAT_STRING	"test/%s/%s/config"
 
 #define AIR_QUALITY_DEVICE {						\
 	.identifiers = device_id_hex_string,				\
-	.name = "Air Quality Monitor - " CONFIG_APP_DEVICE_NICKNAME,	\
+	.name = CONFIG_APP_DEVICE_NAME " - " CONFIG_APP_DEVICE_NICKNAME,	\
 	.sw_version = APP_VERSION_FULL,					\
 	.hw_version = "rev1",						\
 	.model = "Gold",						\
