@@ -78,6 +78,7 @@ struct ha_switch_config {
 	const char *object_id;
 	const char *device_class;
 	const char *availability_topic;
+	const char *state_topic;
 	const char *command_topic;
 	struct ha_device dev;
 };
@@ -135,6 +136,7 @@ static const struct json_obj_descr switch_config_descr[] = {
 	JSON_OBJ_DESCR_PRIM(struct ha_switch_config, object_id,			JSON_TOK_STRING),
 	JSON_OBJ_DESCR_PRIM(struct ha_switch_config, device_class,		JSON_TOK_STRING),
 	JSON_OBJ_DESCR_PRIM(struct ha_switch_config, availability_topic,	JSON_TOK_STRING),
+	JSON_OBJ_DESCR_PRIM(struct ha_switch_config, state_topic,		JSON_TOK_STRING),
 	JSON_OBJ_DESCR_PRIM(struct ha_switch_config, command_topic,		JSON_TOK_STRING),
 	JSON_OBJ_DESCR_OBJECT(struct ha_switch_config, dev, device_descr),
 };
