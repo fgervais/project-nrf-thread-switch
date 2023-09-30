@@ -23,11 +23,16 @@ project(app LANGUAGES C VERSION ${VERSION})
 configure_file(app_version.h.in ${CMAKE_BINARY_DIR}/app/include/app_version.h)
 target_include_directories(app PRIVATE ${CMAKE_BINARY_DIR}/app/include src)
 
-target_sources(app PRIVATE src/mqtt.c)
-target_sources(app PRIVATE src/dns_resolve.c)
-target_sources(app PRIVATE src/openthread.c)
-target_sources(app PRIVATE src/main.c)
+target_sources(app PRIVATE
+        src/dns_resolve.c
+        src/openthread.c
+        src/ha.c
+        src/mqtt.c
+        src/init.c
+        src/reset.c
+        src/uid.c
+        src/main.c)
 
 zephyr_include_directories(
-  configuration/${BOARD}
-  )
+    configuration/${BOARD}
+)
