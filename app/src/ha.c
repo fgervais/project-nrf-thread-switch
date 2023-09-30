@@ -1,3 +1,13 @@
+// MQTT device data
+// -----------------------------------------------------------------------------
+// ~ = CONFIG_APP_DEV_TYPE_* / device_id_hex_string (MQTT_BASE_PATH_FORMAT_STRING)
+// availability_topic = ~/available
+// state_topic = ~ / <sensor|binary_sensor|switch> / sensor->unique_id /state
+
+// MQTT Home Assistant config
+// -----------------------------------------------------------------------------
+// homeassistant / <sensor|binary_sensor|switch> / conf->unique_id /config
+
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(home_assistant, LOG_LEVEL_DBG);
 
