@@ -44,6 +44,7 @@ struct ha_device {
 	const char *manufacturer;
 };
 
+#ifdef APP_HAS_SENSOR
 struct ha_sensor_config {
 	const char *base_path;
 	const char *name;
@@ -57,6 +58,20 @@ struct ha_sensor_config {
 	const char *state_topic;
 	struct ha_device dev;
 };
+#endif
+
+#ifdef APP_HAS_SWITCH
+struct ha_switch_config {
+	const char *base_path;
+	const char *name;
+	const char *unique_id;
+	const char *object_id;
+	const char *device_class;
+	const char *availability_topic;
+	const char *command_topic;
+	struct ha_device dev;
+};
+#endif
 
 
 static const char *device_id_hex_string;
@@ -75,6 +90,7 @@ static const struct json_obj_descr device_descr[] = {
 	JSON_OBJ_DESCR_PRIM(struct ha_device, manufacturer, 	JSON_TOK_STRING),
 };
 
+#ifdef APP_HAS_SENSOR
 static const struct json_obj_descr sensor_config_descr[] = {
 	JSON_OBJ_DESCR_PRIM_NAMED(struct ha_sensor_config, "~", base_path,	JSON_TOK_STRING),
 	JSON_OBJ_DESCR_PRIM(struct ha_sensor_config, name,			JSON_TOK_STRING),
@@ -99,13 +115,27 @@ static const struct json_obj_descr binary_sensor_config_descr[] = {
 	JSON_OBJ_DESCR_PRIM(struct ha_sensor_config, state_topic,		JSON_TOK_STRING),
 	JSON_OBJ_DESCR_OBJECT(struct ha_sensor_config, dev, device_descr),
 };
+#endif
+
+#ifdef APP_HAS_SWITCH
+static const struct json_obj_descr switch_config_descr[] = {
+	JSON_OBJ_DESCR_PRIM_NAMED(struct ha_switch_config, "~", base_path,	JSON_TOK_STRING),
+	JSON_OBJ_DESCR_PRIM(struct ha_switch_config, name,			JSON_TOK_STRING),
+	JSON_OBJ_DESCR_PRIM(struct ha_switch_config, unique_id,			JSON_TOK_STRING),
+	JSON_OBJ_DESCR_PRIM(struct ha_switch_config, object_id,			JSON_TOK_STRING),
+	JSON_OBJ_DESCR_PRIM(struct ha_switch_config, device_class,		JSON_TOK_STRING),
+	JSON_OBJ_DESCR_PRIM(struct ha_switch_config, availability_topic,	JSON_TOK_STRING),
+	JSON_OBJ_DESCR_PRIM(struct ha_switch_config, command_topic,		JSON_TOK_STRING),
+	JSON_OBJ_DESCR_OBJECT(struct ha_switch_config, dev, device_descr),
+};
+#endif
 
 // <discovery_prefix>/<component>/[<node_id>/]<object_id>/config
 //
 // Best practice for entities with a unique_id is to set <object_id> to
 // unique_id and omit the <node_id>.
 // https://www.home-assistant.io/integrations/mqtt/#discovery-topic
-static int ha_send_discovery(const char *sensor_type,
+static int ha_send_sensor_discovery(const char *sensor_type,
 			     struct ha_sensor_config *conf)
 {
 	int ret;
@@ -136,6 +166,37 @@ static int ha_send_discovery(const char *sensor_type,
 			LOG_ERR("Could not encode JSON (%d)", ret);
 			return ret;
 		}
+	}
+
+	LOG_DBG("payload: %s", json_config);
+
+	ret = mqtt_publish_to_topic(discovery_topic, json_config, true);
+	if (ret < 0) {
+		LOG_ERR("Count not publish to topic");
+		return ret;
+	}
+
+	return 0;
+}
+
+static int ha_send_switch_discovery(struct ha_switch_config *conf)
+{
+	int ret;
+	char json_config[JSON_CONFIG_BUFFER_SIZE];
+	char discovery_topic[HA_TOPIC_BUFFER_SIZE];
+
+	snprintf(discovery_topic, sizeof(discovery_topic),
+		 DISCOVERY_TOPIC_FORMAT_STRING,
+		 "switch", conf->unique_id);
+
+	LOG_DBG("discovery topic: %s", discovery_topic);
+
+	ret = json_obj_encode_buf(
+		switch_config_descr, ARRAY_SIZE(switch_config_descr),
+		conf, json_config, sizeof(json_config));
+	if (ret < 0) {
+		LOG_ERR("Could not encode JSON (%d)", ret);
+		return ret;
 	}
 
 	LOG_DBG("payload: %s", json_config);
@@ -253,7 +314,7 @@ int ha_register_sensor(struct ha_sensor *sensor)
 	}
 
 	LOG_INF("📖 send discovery");
-	ret = ha_send_discovery(sensor->type, &ha_sensor_config);
+	ret = ha_send_sensor_discovery(sensor->type, &ha_sensor_config);
 	if (ret < 0) {
 		LOG_ERR("Could not send discovery");
 		return ret;

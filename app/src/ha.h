@@ -27,6 +27,18 @@ struct ha_sensor {
 	char full_state_topic[HA_TOPIC_BUFFER_SIZE];
 };
 
+struct ha_switch {
+	// Set by user
+	const char *name;
+	char unique_id[UID_UNIQUE_ID_STRING_SIZE];
+	const char *device_class;
+
+	// Internal use
+	bool state;
+
+	char full_state_topic[HA_TOPIC_BUFFER_SIZE];
+};
+
 int ha_start(const char *device_id);
 int ha_set_online();
 int ha_init_sensor(struct ha_sensor *);
