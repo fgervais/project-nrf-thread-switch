@@ -16,8 +16,8 @@ LOG_MODULE_REGISTER(home_assistant, LOG_LEVEL_DBG);
 
 #if defined(CONFIG_APP_DEV_TYPE_AIR_QUALITY)
 #define MQTT_BASE_PATH_FORMAT_STRING "air_quality/%s"
-#elif defined(CONFIG_APP_DEV_TYPE_SWITCH)
-#define MQTT_BASE_PATH_FORMAT_STRING "switch/%s"
+#elif defined(APP_DEV_TYPE_ACTION_BUTTON)
+#define MQTT_BASE_PATH_FORMAT_STRING "action_button/%s"
 #else
 #error "No type defined"
 #endif

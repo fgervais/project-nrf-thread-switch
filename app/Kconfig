@@ -17,7 +17,7 @@ choice APP_DEVICE_TYPE
 config APP_DEV_TYPE_AIR_QUALITY
     bool "Air Quality device"
 
-config APP_DEV_TYPE_SWITCH
+config APP_DEV_TYPE_ACTION_BUTTON
     bool "Switch device"
 
 config APP_HAS_SENSOR
