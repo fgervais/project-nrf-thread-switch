@@ -145,19 +145,19 @@ int main(void)
 
 	LOG_INF("🎉 init done 🎉");
 
-	while (1) {
-		dns_resolve_finished = false;
-		dns_resolve_do_ipv6_lookup();
+	// while (1) {
+	// 	dns_resolve_finished = false;
+	// 	dns_resolve_do_ipv6_lookup();
 
-		while (!dns_resolve_finished)
-			k_sleep(K_MSEC(100));
+	// 	while (!dns_resolve_finished)
+	// 		k_sleep(K_MSEC(100));
 
-		if (dns_resolve_success) {
-			strncpy(mqtt_server_addr, dns_resolve_last_resolve_addr,
-				sizeof(mqtt_server_addr));
-			break;
-		}
-	}
+	// 	if (dns_resolve_success) {
+	// 		strncpy(mqtt_server_addr, dns_resolve_last_resolve_addr,
+	// 			sizeof(mqtt_server_addr));
+	// 		break;
+	// 	}
+	// }
 
 	LOG_INF("****************************************");
 	LOG_INF("MAIN DONE");
