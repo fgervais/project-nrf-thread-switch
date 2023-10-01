@@ -13,11 +13,40 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 #include "openthread.h"
 
 
-static struct ha_switch temperature_sensor = {
+#define RETRY_DELAY_SECONDS			10
+
+
+static struct ha_switch switch1 = {
 	.name = "Switch",
 	.device_class = "switch",
 };
 
+
+static void register_switch_retry(struct ha_switch *switch)
+{
+	int ret;
+
+retry:
+	ret = ha_register_switch(switch);
+	if (ret < 0) {
+		LOG_WRN("Could not register switch, retrying");
+		k_sleep(K_SECONDS(RETRY_DELAY_SECONDS));
+		goto retry;
+	}
+}
+
+static void set_online_retry(void)
+{
+	int ret;
+
+retry:
+	ret = ha_set_online();
+	if (ret < 0) {
+		LOG_WRN("Could not set online, retrying");
+		k_sleep(K_SECONDS(RETRY_DELAY_SECONDS));
+		goto retry;
+	}
+}
 
 int main(void)
 {
@@ -49,6 +78,12 @@ int main(void)
 		return ret;
 	}
 
+	ret = uid_init(&temphum24, &hvac);
+	if (ret < 0) {
+		LOG_ERR("Could not init uid module");
+		return ret;
+	}
+
 	if (app_event_manager_init()) {
 		LOG_ERR("Event manager not initialized");
 	} else {
@@ -60,6 +95,16 @@ int main(void)
 
 	mqtt_watchdog_init(wdt, mqtt_wdt_chan_id);
 	ha_start(uid_get_device_id());
+
+	register_switch_retry(&switch1);
+
+	// We set the device online a little after sensor registrations
+	// so HA gets time to process the sensor registrations first before
+	// setting the entities online
+	LOG_INF("💤 waiting for HA to process registration");
+	k_sleep(K_SECONDS(5));
+
+	set_online_retry();
 
 	while (1) {
 		dns_resolve_finished = false;

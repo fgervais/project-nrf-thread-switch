@@ -152,7 +152,8 @@ char * uid_get_device_id(void)
 // }
 // #endif
 
-int uid_init(temphum24_t *temphum24, hvac_t *hvac)
+// int uid_init(temphum24_t *temphum24, hvac_t *hvac)
+int uid_init(void)
 {
 	int ret;
 
