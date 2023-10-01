@@ -437,9 +437,9 @@ int ha_register_switch(struct ha_sensor *sensor)
 	return 0;
 }
 
-int ha_set_switch_state(struct ha_sensor *sensor, bool state)
+int ha_set_toggle_state(struct ha_sensor *sensor)
 {
-	sensor->state = state;
+	sensor->state = !sensor->state;
 
 	return 0;
 }
