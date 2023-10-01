@@ -21,6 +21,13 @@ static struct ha_switch switch1 = {
 	.device_class = "switch",
 };
 
+static struct ha_sensor watchdog_triggered_sensor = {
+	.type = HA_BINARY_SENSOR_TYPE,
+	.name = "Watchdog",
+	.device_class = "problem",
+	.retain = true,
+};
+
 
 static void register_switch_retry(struct ha_switch *switch)
 {
@@ -30,6 +37,32 @@ retry:
 	ret = ha_register_switch(switch);
 	if (ret < 0) {
 		LOG_WRN("Could not register switch, retrying");
+		k_sleep(K_SECONDS(RETRY_DELAY_SECONDS));
+		goto retry;
+	}
+}
+
+static void register_sensor_retry(struct ha_sensor *sensor)
+{
+	int ret;
+
+retry:
+	ret = ha_register_sensor(sensor);
+	if (ret < 0) {
+		LOG_WRN("Could not register sensor, retrying");
+		k_sleep(K_SECONDS(RETRY_DELAY_SECONDS));
+		goto retry;
+	}
+}
+
+static void send_binary_sensor_retry(struct ha_sensor *sensor)
+{
+	int ret;
+
+retry:
+	ret = ha_send_binary_sensor_state(sensor);
+	if (ret < 0) {
+		LOG_WRN("Could not send binary sensor, retrying");
 		k_sleep(K_SECONDS(RETRY_DELAY_SECONDS));
 		goto retry;
 	}
@@ -105,6 +138,12 @@ int main(void)
 	k_sleep(K_SECONDS(5));
 
 	set_online_retry();
+
+	ha_set_binary_sensor_state(&watchdog_triggered_sensor,
+				   is_reset_cause_watchdog(reset_cause));
+	send_binary_sensor_retry(&watchdog_triggered_sensor);
+
+	LOG_INF("🎉 init done 🎉");
 
 	while (1) {
 		dns_resolve_finished = false;

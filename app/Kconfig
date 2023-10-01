@@ -20,16 +20,6 @@ config APP_DEV_TYPE_AIR_QUALITY
 config APP_DEV_TYPE_ACTION_BUTTON
     bool "Switch device"
 
-config APP_HAS_SENSOR
-	bool "Device has sensor"
-	help
-	  Select if there is sensors to publish.
-
-config APP_HAS_SWITCH
-	bool "Device has switch"
-	help
-	  Select if there is switches to publish.
-
 config APP_MQTT_SERVER_HOSTNAME
 	string "MQTT server hostname"
 	help

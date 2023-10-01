@@ -54,7 +54,6 @@ struct ha_device {
 	const char *manufacturer;
 };
 
-#ifdef APP_HAS_SENSOR
 struct ha_sensor_config {
 	const char *base_path;
 	const char *name;
@@ -68,9 +67,7 @@ struct ha_sensor_config {
 	const char *state_topic;
 	struct ha_device dev;
 };
-#endif
 
-#ifdef APP_HAS_SWITCH
 struct ha_switch_config {
 	const char *base_path;
 	const char *name;
@@ -82,7 +79,6 @@ struct ha_switch_config {
 	const char *command_topic;
 	struct ha_device dev;
 };
-#endif
 
 
 static const char *device_id_hex_string;
@@ -101,7 +97,6 @@ static const struct json_obj_descr device_descr[] = {
 	JSON_OBJ_DESCR_PRIM(struct ha_device, manufacturer, 	JSON_TOK_STRING),
 };
 
-#ifdef APP_HAS_SENSOR
 static const struct json_obj_descr sensor_config_descr[] = {
 	JSON_OBJ_DESCR_PRIM_NAMED(struct ha_sensor_config, "~", base_path,	JSON_TOK_STRING),
 	JSON_OBJ_DESCR_PRIM(struct ha_sensor_config, name,			JSON_TOK_STRING),
@@ -126,9 +121,7 @@ static const struct json_obj_descr binary_sensor_config_descr[] = {
 	JSON_OBJ_DESCR_PRIM(struct ha_sensor_config, state_topic,		JSON_TOK_STRING),
 	JSON_OBJ_DESCR_OBJECT(struct ha_sensor_config, dev, device_descr),
 };
-#endif
 
-#ifdef APP_HAS_SWITCH
 static const struct json_obj_descr switch_config_descr[] = {
 	JSON_OBJ_DESCR_PRIM_NAMED(struct ha_switch_config, "~", base_path,	JSON_TOK_STRING),
 	JSON_OBJ_DESCR_PRIM(struct ha_switch_config, name,			JSON_TOK_STRING),
@@ -140,14 +133,12 @@ static const struct json_obj_descr switch_config_descr[] = {
 	JSON_OBJ_DESCR_PRIM(struct ha_switch_config, command_topic,		JSON_TOK_STRING),
 	JSON_OBJ_DESCR_OBJECT(struct ha_switch_config, dev, device_descr),
 };
-#endif
 
 // <discovery_prefix>/<component>/[<node_id>/]<object_id>/config
 //
 // Best practice for entities with a unique_id is to set <object_id> to
 // unique_id and omit the <node_id>.
 // https://www.home-assistant.io/integrations/mqtt/#discovery-topic
-#ifdef APP_HAS_SENSOR
 static int ha_send_sensor_discovery(const char *sensor_type,
 			     struct ha_sensor_config *conf)
 {
@@ -191,9 +182,7 @@ static int ha_send_sensor_discovery(const char *sensor_type,
 
 	return 0;
 }
-#endif
 
-#ifdef APP_HAS_SWITCH
 static int ha_send_switch_discovery(struct ha_switch_config *conf)
 {
 	int ret;
@@ -224,7 +213,6 @@ static int ha_send_switch_discovery(struct ha_switch_config *conf)
 
 	return 0;
 }
-#endif
 
 int ha_start(const char *device_id)
 {
@@ -292,7 +280,6 @@ int ha_set_online()
 // Other usefull links:
 // https://community.home-assistant.io/t/unique-id-and-object-id-are-being-ignored-in-my-mqtt-sensor/397368/14
 // https://community.home-assistant.io/t/wth-are-there-unique-id-and-entity-id/467623/9
-#ifdef APP_HAS_SENSOR
 int ha_register_sensor(struct ha_sensor *sensor)
 {
 	int ret;
@@ -404,9 +391,7 @@ int ha_send_binary_sensor_state(struct ha_sensor *sensor)
 
 	return 0;
 }
-#endif
 
-#ifdef APP_HAS_SWITCH
 int ha_register_switch(struct ha_sensor *sensor)
 {
 	int ret;
@@ -472,4 +457,3 @@ int ha_send_switch_state(struct ha_sensor *sensor)
 
 	return 0;
 }
-#endif
