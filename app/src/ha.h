@@ -41,13 +41,22 @@ struct ha_switch {
 
 int ha_start(const char *device_id);
 int ha_set_online();
+
 int ha_init_sensor(struct ha_sensor *);
 int ha_init_binary_sensor(struct ha_sensor *);
+
 int ha_register_sensor(struct ha_sensor *);
+
 int ha_add_sensor_reading(struct ha_sensor *, double value);
 int ha_set_binary_sensor_state(struct ha_sensor *, bool state);
+
 bool ha_get_binary_sensor_state(struct ha_sensor *);
+
 int ha_send_sensor_value(struct ha_sensor *);
 int ha_send_binary_sensor_state(struct ha_sensor *);
+
+int ha_register_switch(struct ha_sensor *);
+int ha_set_switch_state(struct ha_sensor *, bool state);
+int ha_send_switch_state(struct ha_sensor *);
 
 #endif /* HA_H_ */
