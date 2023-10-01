@@ -179,7 +179,13 @@ static bool event_handler(const struct app_event_header *eh)
 		evt = cast_button_event(eh);
 
 		if (evt->pressed) {
-			mqtt_publisher();
+			// mqtt_publisher();
+			ha_toggle_switch_state(&switch1);
+			ret = ha_send_switch_state(&switch1);
+			if (ret < 0) {
+				LOG_WRN("⚠️ could not send switch state");
+				non_fatal_error = true;
+			}
 		}
 	}
 
