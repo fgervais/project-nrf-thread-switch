@@ -15,6 +15,10 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 
 #define RETRY_DELAY_SECONDS			10
 
+#define MAIN_LOOP_PERIOD_SECONDS		1 * 60
+#define NUMBER_OF_LOOP_RESET_WATCHDOG_SENSOR	(5 * 60 / MAIN_LOOP_PERIOD_SECONDS)
+
+
 
 static struct ha_switch switch1 = {
 	.name = "Switch",
@@ -89,6 +93,8 @@ int main(void)
 	int main_wdt_chan_id = -1, mqtt_wdt_chan_id = -1;
 	uint32_t reset_cause;
 
+	uint32_t main_loop_counter = 0;
+
 
 	init_watchdog(wdt, &main_wdt_chan_id, &mqtt_wdt_chan_id);
 
@@ -159,6 +165,7 @@ int main(void)
 	// 	}
 	// }
 
+
 	LOG_INF("****************************************");
 	LOG_INF("MAIN DONE");
 	LOG_INF("****************************************");
@@ -167,6 +174,25 @@ int main(void)
 	pm_device_action_run(cons, PM_DEVICE_ACTION_SUSPEND);
 
 	LOG_INF("PM_DEVICE_ACTION_SUSPEND");
+
+	while(1) {
+		k_sleep(K_SECONDS(1 * 60));
+
+		if (main_loop_counter >= NUMBER_OF_LOOP_RESET_WATCHDOG_SENSOR &&
+		    ha_get_binary_sensor_state(&watchdog_triggered_sensor) == true) {
+			ha_set_binary_sensor_state(&watchdog_triggered_sensor, false);
+			send_binary_sensor_retry(&watchdog_triggered_sensor);
+
+		// Epilogue
+
+		main_loop_counter += 1;
+
+		LOG_INF("🦴 feed watchdog");
+		wdt_feed(wdt, main_wdt_chan_id);
+
+		LOG_INF("💤 end of main loop");
+		k_sleep(K_SECONDS(MAIN_LOOP_PERIOD_SECONDS));
+	}
 
 	return 0;
 }
