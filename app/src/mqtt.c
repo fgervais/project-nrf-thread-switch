@@ -6,6 +6,7 @@
 LOG_MODULE_REGISTER(mqtt, LOG_LEVEL_DBG);
 
 #include "mqtt.h"
+#include "openthread.h"
 
 
 // #define SERVER_PORT 1883
@@ -143,14 +144,20 @@ static void mqtt_evt_handler(struct mqtt_client *const client,
 
 	switch (evt->type) {
 	case MQTT_EVT_SUBACK:
+		openthread_set_normal_latency();
+
 		LOG_INF("SUBACK packet id: %u", evt->param.suback.message_id);
 		break;
 
 	case MQTT_EVT_UNSUBACK:
+		openthread_set_normal_latency();
+
 		LOG_INF("UNSUBACK packet id: %u", evt->param.suback.message_id);
 		break;
 
 	case MQTT_EVT_CONNACK:
+		openthread_set_normal_latency();
+
 		if (evt->result) {
 			LOG_ERR("MQTT connect failed %d", evt->result);
 			break;
@@ -168,6 +175,8 @@ static void mqtt_evt_handler(struct mqtt_client *const client,
 		break;
 
 	case MQTT_EVT_PUBACK:
+		openthread_set_normal_latency();
+
 		if (evt->result) {
 			LOG_ERR("MQTT PUBACK error %d", evt->result);
 			break;
@@ -212,6 +221,8 @@ static void mqtt_evt_handler(struct mqtt_client *const client,
 		break;
 
 	case MQTT_EVT_PINGRESP:
+		openthread_set_normal_latency();
+
 		LOG_INF("PINGRESP");
 		LOG_INF("└── 🦴 feed watchdog");
 		wdt_feed(wdt, wdt_channel_id);
@@ -320,6 +331,8 @@ static void subscribe(struct mqtt_client *client, const char *topic)
 	subs_list.list_count = 1U;
 	subs_list.message_id = 1U;
 
+	openthread_set_low_latency();
+
 	err = mqtt_subscribe(client, &subs_list);
 	if (err) {
 		LOG_ERR("Failed on topic %s", topic);
@@ -341,6 +354,8 @@ static void keepalive(struct k_work *work)
 		LOG_WRN("🤔 MQTT ping not acknowledged: %d",
 			client_ctx.unacked_ping);
 	}
+
+	openthread_set_low_latency();
 
 	rc = mqtt_ping(&client_ctx);
 	if (rc < 0) {
@@ -383,6 +398,8 @@ static int try_to_connect(struct mqtt_client *client)
 	while (retries--) {
 		client_init(client);
 
+		openthread_set_low_latency();
+
 		rc = mqtt_connect(client);
 		if (rc) {
 			LOG_ERR("mqtt_connect failed %d", rc);
@@ -392,6 +409,9 @@ static int try_to_connect(struct mqtt_client *client)
 		prepare_fds(client);
 
 		rc = wait(MQTT_CONNECT_TIMEOUT_MS);
+
+		openthread_set_normal_latency();
+
 		if (rc < 0) {
 			mqtt_abort(client);
 			return rc;
@@ -427,9 +447,14 @@ static int get_mqtt_broker_addrinfo(void)
 		hints.ai_socktype = SOCK_STREAM;
 		hints.ai_protocol = 0;
 
+		openthread_set_low_latency();
+
 		rc = getaddrinfo(CONFIG_APP_MQTT_SERVER_HOSTNAME,
 				       STRINGIFY(CONFIG_APP_MQTT_SERVER_PORT),
 				       &hints, &haddr);
+
+		openthread_set_normal_latency();
+
 		if (rc == 0) {
 			char atxt[INET6_ADDRSTRLEN] = { 0 };
 
@@ -577,8 +602,11 @@ int mqtt_publish_to_topic(const char *topic, char *payload, bool retain)
 		}
 	}
 
+	openthread_set_low_latency();
+
 	ret = mqtt_publish(&client_ctx, &param);
 	if (ret < 0) {
+		openthread_set_normal_latency();
 		LOG_ERR("mqtt_publish (%d)", ret);
 		return ret;
 	}

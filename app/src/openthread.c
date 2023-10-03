@@ -141,6 +141,11 @@ static struct openthread_state_changed_cb ot_state_chaged_cb = {
 	.state_changed_cb = on_thread_state_changed
 };
 
+static bool is_mtd_in_med_mode(otInstance *instance)
+{
+	return otThreadGetLinkMode(instance).mRxOnWhenIdle;
+}
+
 void openthread_set_csl_period_ms(int period_ms)
 {
 	otError otErr;
@@ -157,13 +162,25 @@ bool openthread_is_ready()
 
 void openthread_set_low_latency()
 {
-	otLinkSetPollPeriod(openthread_get_default_instance(), 10);
+	otInstance *instance = openthread_get_default_instance();
+
+	if (is_mtd_in_med_mode(instance)) {
+		return;
+	}
+
+	otLinkSetPollPeriod(instance, 100);
 	// openthread_set_csl_period_ms(CSL_LOW_LATENCY_PERIOD_MS);
 }
 
 void openthread_set_normal_latency()
 {
-	otLinkSetPollPeriod(openthread_get_default_instance(), 0);
+	otInstance *instance = openthread_get_default_instance();
+
+	if (is_mtd_in_med_mode(instance)) {
+		return;
+	}
+
+	otLinkSetPollPeriod(instance, 0);
 	// openthread_set_csl_period_ms(CSL_NORMAL_LATENCY_PERIOD_MS);
 }
 
