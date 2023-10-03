@@ -346,8 +346,10 @@ static void keepalive(struct k_work *work)
 	LOG_INF("🤖 mqtt keepalive");
 
 	if (!mqtt_connected) {
-		LOG_WRN("we are disconnected");
-		return;
+		ret = connect_to_server();
+		if (ret < 0) {
+			return ret;
+		}
 	}
 
 	if (client_ctx.unacked_ping) {
