@@ -175,6 +175,8 @@ static void mqtt_evt_handler(struct mqtt_client *const client,
 	case MQTT_EVT_DISCONNECT:
 		LOG_DBG("MQTT client disconnected %d", evt->result);
 
+		// We let keepalive running so on next ping it will reconnect
+		// so we will be back online and the watchdog will get fed.
 		mqtt_connected = false;
 		clear_fds();
 		break;
