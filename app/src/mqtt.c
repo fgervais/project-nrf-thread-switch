@@ -429,8 +429,16 @@ static int try_to_connect(struct mqtt_client *client)
 		mqtt_input(client);
 
 		if (mqtt_connected) {
+			// If we are reconnecting and so a keepalive work is
+			// already pending, this function will replace the
+			// currently pending one.
+			// 
+			// https://docs.zephyrproject.org/latest/kernel/services/threads/workqueue.html#scheduling-a-delayable-work-item
 			k_work_reschedule(&keepalive_work,
 					  K_SECONDS(client->keepalive));
+			// Does nothing if thread is already started.
+			// 
+			// https://github.com/zephyrproject-rtos/zephyr/blob/cdebe6ef711ffbd08b5faad48b955fdd077e00fc/kernel/sched.c#L658C37-L658C37
 			k_thread_start(poll_thread);
 			return 0;
 		}
