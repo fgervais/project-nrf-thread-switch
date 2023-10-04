@@ -113,6 +113,11 @@ static void client_init(struct mqtt_client *client)
 	client->broker = &broker;
 	client->evt_cb = mqtt_event_handler;
 
+	// The MQTT server will remember our subscriptions based on this ID
+	// if ever we get disconnected.
+	// 
+	// https://stackoverflow.com/questions/75927301/why-should-the-clients-of-mqtt-choose-their-own-id
+	// https://docs.zephyrproject.org/latest/connectivity/networking/api/mqtt.html#c.mqtt_client.clean_session
 	client->client_id.utf8 = (uint8_t *)device_id;
 	client->client_id.size = strlen(device_id);
 
