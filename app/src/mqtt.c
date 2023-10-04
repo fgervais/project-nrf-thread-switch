@@ -415,6 +415,7 @@ static int try_to_connect(struct mqtt_client *client)
 			continue;
 		}
 
+		// This is after `mqtt_connect()` so can get the socket descriptor
 		prepare_fds(client);
 
 		rc = wait(MQTT_CONNECT_TIMEOUT_MS);
