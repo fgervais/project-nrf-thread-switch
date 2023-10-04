@@ -19,6 +19,8 @@ LOG_MODULE_REGISTER(mqtt, LOG_LEVEL_DBG);
 // #define MQTT_TOPIC "home/room/julie/switch/light/state"
 // #define MQTT_TOPIC "home/room/computer/switch/table_light/state"
 
+#define MQTT_EVENT_CONNECTED		BIT(0)
+
 
 static uint8_t rx_buffer[APP_MQTT_BUFFER_SIZE];
 static uint8_t tx_buffer[APP_MQTT_BUFFER_SIZE];
@@ -35,7 +37,7 @@ static struct zsock_pollfd fds[1];
 static int nfds;
 
 static const char *device_id;
-static bool mqtt_connected;
+// static bool mqtt_connected;
 
 // char mqtt_server_addr[NET_IPV6_ADDR_LEN];
 // static bool switch_state;
@@ -53,6 +55,8 @@ static struct zsock_addrinfo *haddr;
 static const struct device *wdt;
 static int wdt_channel_id;
 
+static K_EVENT_DEFINE(mqtt_events);
+
 
 static void mqtt_event_handler(struct mqtt_client *const client,
 			       const struct mqtt_evt *evt);
@@ -61,6 +65,7 @@ static void keepalive(struct k_work *work);
 
 static void prepare_fds(struct mqtt_client *client)
 {
+	fds[0].fd = client->transport.tcp.sock;
 	fds[0].events = ZSOCK_POLLIN;
 	nfds = 1;
 }
@@ -70,7 +75,7 @@ static void clear_fds(void)
 	nfds = 0;
 }
 
-static int wait(int timeout)
+static int poll_socket(int timeout)
 {
 	int rc = -EINVAL;
 
@@ -78,6 +83,8 @@ static int wait(int timeout)
 		return rc;
 	}
 
+	// Peer disconnect counts as a read event.
+	// https://stackoverflow.com/questions/17692447/does-poll-system-call-know-if-remote-socket-closed-or-disconnected#:~:text=Peer%20disconnect%20counts%20as%20a%20read%20event.
 	rc = zsock_poll(fds, nfds, timeout);
 	if (rc < 0) {
 		LOG_ERR("poll error: %d", errno);
@@ -140,6 +147,27 @@ static void client_init(struct mqtt_client *client)
 	client->will_retain = 1;
 }
 
+static bool is_mqtt_connected(void)
+{
+	return k_event_test(mqtt_events, MQTT_EVENT_CONNECTED);
+}
+
+static void mqtt_connected(void)
+{
+	k_event_set(mqtt_events, MQTT_EVENT_CONNECTED);
+}
+
+static void mqtt_disconnected(void)
+{
+	k_event_clear(mqtt_events, MQTT_EVENT_CONNECTED);
+	clear_fds();
+}
+
+static void wait_for_mqtt_connected(void)
+{
+	k_event_wait(&mqtt_events, MQTT_EVENT_CONNECTED, false, K_FOREVER);
+}
+
 static void mqtt_evt_handler(struct mqtt_client *const client,
 		      const struct mqtt_evt *evt)
 {
@@ -168,7 +196,7 @@ static void mqtt_evt_handler(struct mqtt_client *const client,
 			break;
 		}
 
-		mqtt_connected = true;
+		mqtt_connected();
 		LOG_DBG("MQTT client connected!");
 		break;
 
@@ -177,8 +205,7 @@ static void mqtt_evt_handler(struct mqtt_client *const client,
 
 		// We let keepalive running so on next ping it will reconnect
 		// so we will be back online and the watchdog will get fed.
-		mqtt_connected = false;
-		clear_fds();
+		mqtt_disconnected();
 		break;
 
 	case MQTT_EVT_PUBACK:
@@ -352,7 +379,7 @@ static void keepalive(struct k_work *work)
 
 	LOG_INF("🤖 mqtt keepalive");
 
-	if (!mqtt_connected) {
+	if (!is_mqtt_connected()) {
 		ret = connect_to_server();
 		if (ret < 0) {
 			return ret;
@@ -375,23 +402,23 @@ static void keepalive(struct k_work *work)
 	k_work_reschedule(&keepalive_work, K_SECONDS(client_ctx.keepalive));
 }
 
-static void poll_thread_function(void)
+static void mqtt_receive_thread_function(void)
 {
 	int rc;
 
 	while (1) {
-		if (wait(SYS_FOREVER_MS)) {
+		wait_for_mqtt_connected();
+		if (poll_socket(SYS_FOREVER_MS)) {
 			rc = mqtt_input(&client_ctx);
 			if (rc < 0) {
-				LOG_ERR("mqtt_input (%d)", rc);
-				return;
+				LOG_WRN("⚠️ mqtt_input (%d)", rc);
 			}
 		}
 	}
 }
 
-K_THREAD_DEFINE(poll_thread, CONFIG_APP_POLL_THREAD_STACK_SIZE,
-		poll_thread_function, NULL, NULL, NULL,
+K_THREAD_DEFINE(mqtt_receive_thread, CONFIG_APP_POLL_THREAD_STACK_SIZE,
+		mqtt_receive_thread_function, NULL, NULL, NULL,
 		K_LOWEST_APPLICATION_THREAD_PRIO, 0, SYS_FOREVER_MS);
 
 
@@ -418,7 +445,7 @@ static int try_to_connect(struct mqtt_client *client)
 		// This is after `mqtt_connect()` so can get the socket descriptor
 		prepare_fds(client);
 
-		rc = wait(MQTT_CONNECT_TIMEOUT_MS);
+		rc = poll_socket(MQTT_CONNECT_TIMEOUT_MS);
 
 		openthread_set_normal_latency();
 
@@ -428,7 +455,7 @@ static int try_to_connect(struct mqtt_client *client)
 
 		mqtt_input(client);
 
-		if (mqtt_connected) {
+		if (is_mqtt_connected()) {
 			// If we are reconnecting and so a keepalive work is
 			// already pending, this function will replace the
 			// currently pending one.
@@ -437,15 +464,14 @@ static int try_to_connect(struct mqtt_client *client)
 			k_work_reschedule(&keepalive_work,
 					  K_SECONDS(client->keepalive));
 			// Does nothing if thread is already started.
-			// 
 			// https://github.com/zephyrproject-rtos/zephyr/blob/cdebe6ef711ffbd08b5faad48b955fdd077e00fc/kernel/sched.c#L658C37-L658C37
-			k_thread_start(poll_thread);
+			k_thread_start(mqtt_receive_thread);
 			return 0;
 		}
 
 abort:
 		mqtt_abort(client);
-		wait(MQTT_ABORT_TIMEOUT_MS);
+		poll_socket(MQTT_ABORT_TIMEOUT_MS);
 	}
 
 	return -EINVAL;
@@ -532,7 +558,7 @@ static int connect_to_server(void)
 // 	int rc;
 
 // 	while (remaining > 0 && mqtt_connected) {
-// 		if (wait(remaining)) {
+// 		if (poll_socket(remaining)) {
 // 			rc = mqtt_input(client);
 // 			if (rc != 0) {
 // 				PRINT_RESULT("mqtt_input", rc);
@@ -612,7 +638,7 @@ int mqtt_publish_to_topic(const char *topic, char *payload, bool retain)
 	param.dup_flag = 0U;
 	param.retain_flag = retain ? 1U : 0U;
 
-	if (!mqtt_connected) {
+	if (!is_mqtt_connected()) {
 		ret = connect_to_server();
 		if (ret < 0) {
 			return ret;
@@ -636,7 +662,7 @@ int mqtt_subscribe_to_topic(const struct mqtt_subscription *subs,
 {
 	int ret;
 
-	if (!mqtt_connected) {
+	if (!is_mqtt_connected()) {
 		ret = connect_to_server();
 		if (ret < 0) {
 			return ret;
