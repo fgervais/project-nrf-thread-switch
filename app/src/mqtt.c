@@ -423,8 +423,7 @@ static int try_to_connect(struct mqtt_client *client)
 		openthread_set_normal_latency();
 
 		if (rc < 0) {
-			mqtt_abort(client);
-			return rc;
+			goto abort;
 		}
 
 		mqtt_input(client);
@@ -444,8 +443,8 @@ static int try_to_connect(struct mqtt_client *client)
 			return 0;
 		}
 
+abort:
 		mqtt_abort(client);
-
 		wait(MQTT_ABORT_TIMEOUT_MS);
 	}
 
