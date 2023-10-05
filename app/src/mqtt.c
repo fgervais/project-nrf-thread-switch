@@ -352,9 +352,9 @@ static void mqtt_evt_handler(struct mqtt_client *const client,
 
 // }
 
-static void subscribe(struct mqtt_client *client, const char *topic)
+static int subscribe(struct mqtt_client *client, const char *topic)
 {
-	int err;
+	int ret;
 	struct mqtt_topic subs_topic;
 	struct mqtt_subscription_list subs_list;
 
@@ -367,10 +367,14 @@ static void subscribe(struct mqtt_client *client, const char *topic)
 
 	openthread_set_low_latency();
 
-	err = mqtt_subscribe(client, &subs_list);
-	if (err) {
+	ret = mqtt_subscribe(client, &subs_list);
+	if (ret) {
+		openthread_set_normal_latency();
 		LOG_ERR("Failed on topic %s", topic);
+		return ret;
 	}
+
+	return 0;
 }
 
 static void keepalive(struct k_work *work)
@@ -395,8 +399,8 @@ static void keepalive(struct k_work *work)
 
 	rc = mqtt_ping(&client_ctx);
 	if (rc < 0) {
+		openthread_set_normal_latency();
 		LOG_ERR("mqtt_ping (%d)", rc);
-		return;
 	}
 
 	k_work_reschedule(&keepalive_work, K_SECONDS(client_ctx.keepalive));
@@ -674,7 +678,11 @@ int mqtt_subscribe_to_topic(const struct mqtt_subscription *subs,
 
 	for (int i = 0; i < nb_of_subs; i++) {
 		LOG_INF("subscribing to topic: %s", subs[i].topic);
-		subscribe(&client_ctx, subs[i].topic);		
+		ret = subscribe(&client_ctx, subs[i].topic);	
+		if (ret < 0) {
+			LOG_ERR("Could not subscribe to topic");
+			return ret;
+		}	
 	}
 
 	return 0;
