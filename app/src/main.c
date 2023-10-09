@@ -210,7 +210,7 @@ static bool event_handler(const struct app_event_header *eh)
 			ret = ha_send_switch_state(&switch1);
 			if (ret < 0) {
 				LOG_WRN("⚠️ could not send switch state");
-				non_fatal_error = true;
+// WHAT TO DO HERE?
 			}
 		}
 	}
