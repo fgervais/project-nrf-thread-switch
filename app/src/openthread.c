@@ -168,7 +168,9 @@ void openthread_set_low_latency()
 		return;
 	}
 
+	openthread_api_mutex_lock(ot_context);
 	otLinkSetPollPeriod(instance, 100);
+	openthread_api_mutex_unlock(ot_context);
 	// openthread_set_csl_period_ms(CSL_LOW_LATENCY_PERIOD_MS);
 }
 
@@ -180,7 +182,9 @@ void openthread_set_normal_latency()
 		return;
 	}
 
+	openthread_api_mutex_lock(ot_context);
 	otLinkSetPollPeriod(instance, 0);
+	openthread_api_mutex_unlock(ot_context);
 	// openthread_set_csl_period_ms(CSL_NORMAL_LATENCY_PERIOD_MS);
 }
 
