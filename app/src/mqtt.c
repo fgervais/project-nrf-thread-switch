@@ -201,6 +201,8 @@ static void mqtt_evt_handler(struct mqtt_client *const client,
 		break;
 
 	case MQTT_EVT_DISCONNECT:
+		openthread_force_normal_latency();
+
 		LOG_DBG("MQTT client disconnected %d", evt->result);
 
 		// We let keepalive running so on next ping it will reconnect

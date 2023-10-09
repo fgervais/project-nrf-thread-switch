@@ -13,6 +13,9 @@ LOG_MODULE_REGISTER(openthread, LOG_LEVEL_DBG);
 
 
 static K_EVENT_DEFINE(events);
+static K_MUTEX_DEFINE(low_latency_mutex);
+
+static int low_latency_request_level = 0;
 
 
 static void format_address(char *buffer, size_t buffer_size, const uint8_t *addr_m8,
@@ -188,6 +191,121 @@ void openthread_set_normal_latency()
 	// openthread_set_csl_period_ms(CSL_NORMAL_LATENCY_PERIOD_MS);
 }
 
+static struct k_work_delayable low_latency_timeout_work;
+static void low_latency_timeout(struct k_work *work)
+{
+	k_mutex_lock(&low_latency_mutex, K_FOREVER);
+
+	low_latency_request_level = 0;
+	openthread_set_normal_latency();
+
+	k_mutex_unlock(&low_latency_mutex);
+}
+
+void openthread_request_low_latency()
+{
+	k_mutex_lock(&low_latency_mutex, K_FOREVER);
+
+	// If we are here and then get interrupted by low_latency_timeout()
+	// low_latency_timeout() start to wait on mutex so we resume here.
+	// Then we set low latency which will instantly get cancelled once
+	// we unlock the mutex.
+
+	openthread_set_low_latency()
+	k_work_reschedule(&low_latency_timeout_work, K_SECONDS(3));
+	low_latency_request_level++;
+
+	k_mutex_unlock(&low_latency_mutex);
+}
+
+void openthread_request_normal_latency()
+{
+	k_mutex_lock(&low_latency_mutex, K_FOREVER);
+
+	if (low_latency_request_level == 0) {
+		return;
+	}
+
+	low_latency_request_level--;
+
+	if (low_latency_request_level == 0) {
+		openthread_set_normal_latency();
+		k_work_cancel_delayable(low_latency_timeout_work);
+	}
+
+	k_mutex_unlock(&low_latency_mutex);
+}
+
+void openthread_force_normal_latency()
+{
+	k_mutex_lock(&low_latency_mutex, K_FOREVER);
+
+	low_latency_request_level = 0;
+	openthread_set_normal_latency();
+	k_work_cancel_delayable(low_latency_timeout_work);
+
+	k_mutex_unlock(&low_latency_mutex);
+}
+
+
+#define LOW_LATENCY_EVENT_LOW		BIT(0)
+#define LOW_LATENCY_EVENT_NORMAL	BIT(1)
+#define LOW_LATENCY_EVENT_FORCE_LOW	BIT(2)
+
+K_EVENT_DEFINE(low_latency_events);
+
+static void receive_latency_management_thread_function(void)
+{
+	int ret;
+	int low_latency_request_level = 0;
+	bool timeout_enabled = false;
+	uint32_t events;
+ 
+	while (1) {
+		// ret = k_sem_take(&my_sem,
+		// 	timeout_enabled ? K_SEC(3) : K_FOREVER);
+		events = k_event_wait(&low_latency_events,
+			(LOW_LATENCY_EVENT_LOW |
+			 LOW_LATENCY_EVENT_NORMAL |
+			 LOW_LATENCY_EVENT_FORCE_LOW),
+			false,
+			timeout_enabled ? K_SEC(3) : K_FOREVER);
+		k_event_set(&ac_control_events, 0);
+
+		LOG_INF("⏰ events: %08x", events);
+
+		if (events & LOW_LATENCY_EVENT_LOW) {
+			openthread_set_low_latency()
+			low_latency_request_level++;
+			timeout_enabled = true;
+		}
+		else if (events & LOW_LATENCY_EVENT_NORMAL) {
+			// We are already in normal latency and someone requested
+			// normal latency.
+			if (low_latency_request_level == 0) {
+				continue;
+			}
+
+			low_latency_request_level--;
+
+			if (low_latency_request_level == 0) {
+				openthread_set_normal_latency();
+				timeout_enabled = false;
+			}
+		}
+		// Timeout or force low latency
+		else if (events == 0 || events & LOW_LATENCY_EVENT_FORCE_LOW) {
+			low_latency_request_level = 0;
+			openthread_set_normal_latency();
+			timeout_enabled = false;
+		}
+	}
+}
+
+K_THREAD_DEFINE(receive_latency_thread, CONFIG_APP_LATENCY_THREAD_STACK_SIZE,
+		receive_latency_management_thread_function, NULL, NULL, NULL,
+		-2, 0, SYS_FOREVER_MS);
+
 int openthread_erase_persistent_info(void)
 {
 	struct openthread_context *ot_context = openthread_get_default_context();
@@ -215,6 +333,9 @@ int openthread_my_start(void)
 		LOG_ERR("Could register callback");
 		return ret;
 	}
+
+	k_work_init_delayable(&low_latency_timeout_work, low_latency_timeout);
+	k_thread_start(receive_latency_thread);
 
 	return openthread_start(ot_context);
 }
