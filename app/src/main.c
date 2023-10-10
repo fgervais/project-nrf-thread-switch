@@ -11,7 +11,6 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 
 #include <app_version.h>
 
-#include "dns_resolve.h"
 #include "ha.h"
 #include "init.h"
 #include "mqtt.h"
