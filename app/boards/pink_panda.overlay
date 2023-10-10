@@ -44,6 +44,9 @@
 &usbd {
 	status = "disabled";
 };
+&gpio0 {
+	status = "okay";
+};
 &gpio1 {
 	status = "disabled";
 };

@@ -392,11 +392,11 @@ int ha_send_binary_sensor_state(struct ha_sensor *sensor)
 	return 0;
 }
 
-int ha_register_switch(struct ha_sensor *sensor)
+int ha_register_switch(struct ha_switch *sensor)
 {
 	int ret;
 	char brief_state_topic[HA_TOPIC_BUFFER_SIZE];
-	struct ha_switch_config ha_switch_config {
+	struct ha_switch_config ha_switch_config = {
 		.base_path = mqtt_base_path,
 		.name = sensor->name,
 		.unique_id = sensor->unique_id,
@@ -428,7 +428,7 @@ int ha_register_switch(struct ha_sensor *sensor)
 	}
 
 	LOG_INF("📖 send discovery");
-	ret = ha_send_sensor_discovery(sensor->type, &ha_sensor_config);
+	ret = ha_send_switch_discovery(&ha_switch_config);
 	if (ret < 0) {
 		LOG_ERR("Could not send discovery");
 		return ret;
@@ -437,14 +437,14 @@ int ha_register_switch(struct ha_sensor *sensor)
 	return 0;
 }
 
-int ha_set_toggle_state(struct ha_sensor *sensor)
+int ha_set_toggle_state(struct ha_switch *sensor)
 {
 	sensor->state = !sensor->state;
 
 	return 0;
 }
 
-int ha_send_switch_state(struct ha_sensor *sensor)
+int ha_send_switch_state(struct ha_switch *sensor)
 {
 	int ret;
 

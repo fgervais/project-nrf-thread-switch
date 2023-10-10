@@ -8,6 +8,10 @@
 
 // struct ha_sensor;
 
+int uid_generate_unique_id(char *uid_buf, size_t uid_buf_size,
+			   const char *part_number,
+			   const char *sensor_name,
+			   const char *serial_number);
 char * uid_get_device_id(void);
 // char * uid_get_hdc302x_serial(void);
 // char * uid_get_scd4x_serial(void);
@@ -15,7 +19,7 @@ char * uid_get_device_id(void);
 // char * uid_get_sps30_serial(void);
 // #endif
 
-// int uid_init(temphum24_t *temphum24, hvac_t *hvac);
+int uid_init(void);
 // #ifdef CONFIG_APP_ENABLE_SPS30
 // int uid_fill_unique_ids(struct ha_sensor *wdt,
 // 			struct ha_sensor *temp,

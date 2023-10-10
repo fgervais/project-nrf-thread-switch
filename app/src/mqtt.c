@@ -1,3 +1,4 @@
+#include <zephyr/drivers/watchdog.h>
 #include <zephyr/net/mqtt.h>
 #include <zephyr/net/socket.h>
 #include <zephyr/random/rand32.h>
@@ -22,8 +23,8 @@ LOG_MODULE_REGISTER(mqtt, LOG_LEVEL_DBG);
 #define MQTT_EVENT_CONNECTED		BIT(0)
 
 
-static uint8_t rx_buffer[APP_MQTT_BUFFER_SIZE];
-static uint8_t tx_buffer[APP_MQTT_BUFFER_SIZE];
+static uint8_t rx_buffer[CONFIG_APP_MQTT_BUFFER_SIZE];
+static uint8_t tx_buffer[CONFIG_APP_MQTT_BUFFER_SIZE];
 
 static struct mqtt_client client_ctx;
 
@@ -58,9 +59,10 @@ static int wdt_channel_id;
 static K_EVENT_DEFINE(mqtt_events);
 
 
+static int connect_to_server(void);
+static void keepalive(struct k_work *work);
 static void mqtt_event_handler(struct mqtt_client *const client,
 			       const struct mqtt_evt *evt);
-static void keepalive(struct k_work *work);
 
 
 static void prepare_fds(struct mqtt_client *client)
@@ -149,17 +151,18 @@ static void client_init(struct mqtt_client *client)
 
 static bool is_mqtt_connected(void)
 {
-	return k_event_test(mqtt_events, MQTT_EVENT_CONNECTED);
+	// return k_event_test(&mqtt_events, MQTT_EVENT_CONNECTED);
+	return k_event_wait(&mqtt_events, MQTT_EVENT_CONNECTED, false, K_NO_WAIT);
 }
 
 static void mqtt_connected(void)
 {
-	k_event_set(mqtt_events, MQTT_EVENT_CONNECTED);
+	k_event_set(&mqtt_events, MQTT_EVENT_CONNECTED);
 }
 
 static void mqtt_disconnected(void)
 {
-	k_event_clear(mqtt_events, MQTT_EVENT_CONNECTED);
+	k_event_clear(&mqtt_events, MQTT_EVENT_CONNECTED);
 	clear_fds();
 }
 
@@ -168,7 +171,7 @@ static void wait_for_mqtt_connected(void)
 	k_event_wait(&mqtt_events, MQTT_EVENT_CONNECTED, false, K_FOREVER);
 }
 
-static void mqtt_evt_handler(struct mqtt_client *const client,
+static void mqtt_event_handler(struct mqtt_client *const client,
 		      const struct mqtt_evt *evt)
 {
 	uint8_t data[33];
@@ -177,19 +180,19 @@ static void mqtt_evt_handler(struct mqtt_client *const client,
 
 	switch (evt->type) {
 	case MQTT_EVT_SUBACK:
-		openthread_set_normal_latency();
+		openthread_request_normal_latency();
 
 		LOG_INF("SUBACK packet id: %u", evt->param.suback.message_id);
 		break;
 
 	case MQTT_EVT_UNSUBACK:
-		openthread_set_normal_latency();
+		openthread_request_normal_latency();
 
 		LOG_INF("UNSUBACK packet id: %u", evt->param.suback.message_id);
 		break;
 
 	case MQTT_EVT_CONNACK:
-		openthread_set_normal_latency();
+		openthread_request_normal_latency();
 
 		if (evt->result) {
 			LOG_ERR("MQTT connect failed %d", evt->result);
@@ -211,7 +214,7 @@ static void mqtt_evt_handler(struct mqtt_client *const client,
 		break;
 
 	case MQTT_EVT_PUBACK:
-		openthread_set_normal_latency();
+		openthread_request_normal_latency();
 
 		if (evt->result) {
 			LOG_ERR("MQTT PUBACK error %d", evt->result);
@@ -257,7 +260,7 @@ static void mqtt_evt_handler(struct mqtt_client *const client,
 		break;
 
 	case MQTT_EVT_PINGRESP:
-		openthread_set_normal_latency();
+		openthread_request_normal_latency();
 
 		LOG_INF("PINGRESP");
 		LOG_INF("└── 🦴 feed watchdog");
@@ -268,91 +271,7 @@ static void mqtt_evt_handler(struct mqtt_client *const client,
 		LOG_WRN("Unhandled MQTT event %d", evt->type);
 		break;
 	}
-
-	// k_sleep(K_MSEC(50));
-	// openthread_set_normal_latency();
 }
-
-// static char *get_mqtt_payload(enum mqtt_qos qos)
-// {
-// 	static char payload[4];
-
-// 	if (switch_state) {
-// 		strcpy(payload, "ON");
-// 	}
-// 	else {
-// 		strcpy(payload, "OFF");
-// 	}
-
-// 	switch_state = !switch_state;
-
-// 	return payload;
-// }
-
-// static char *get_mqtt_topic(void)
-// {
-// 	return MQTT_TOPIC;
-// }
-
-// static int publish(struct mqtt_client *client, enum mqtt_qos qos)
-// {
-// 	struct mqtt_publish_param param;
-
-// 	param.message.topic.qos = qos;
-// 	param.message.topic.topic.utf8 = (uint8_t *)get_mqtt_topic();
-// 	param.message.topic.topic.size =
-// 			strlen(param.message.topic.topic.utf8);
-// 	param.message.payload.data = get_mqtt_payload(qos);
-// 	param.message.payload.len =
-// 			strlen(param.message.payload.data);
-// 	param.message_id = sys_rand32_get();
-// 	param.dup_flag = 0U;
-// 	param.retain_flag = 0U;
-
-// 	return mqtt_publish(client, &param);
-// }
-
-// #define RC_STR(rc) ((rc) == 0 ? "OK" : "ERROR")
-
-// #define PRINT_RESULT(func, rc) \
-// 	LOG_INF("%s: %d <%s>", (func), rc, RC_STR(rc))
-
-// static void broker_init(void)
-// {
-// 	struct sockaddr_in6 *broker6 = (struct sockaddr_in6 *)&broker;
-
-// 	LOG_INF("server address: %s", mqtt_server_addr);
-
-// 	broker6->sin6_family = AF_INET6;
-// 	broker6->sin6_port = htons(SERVER_PORT);
-// 	zsock_inet_pton(AF_INET6, mqtt_server_addr, &broker6->sin6_addr);
-// }
-
-// static void client_init(struct mqtt_client *client)
-// {
-// 	mqtt_client_init(client);
-
-// 	broker_init();
-
-// 	/* MQTT client configuration */
-// 	client->broker = &broker;
-// 	client->evt_cb = mqtt_evt_handler;
-// 	client->client_id.utf8 = (uint8_t *)MQTT_CLIENTID;
-// 	client->client_id.size = strlen(MQTT_CLIENTID);
-// 	client->password = NULL;
-// 	client->user_name = NULL;
-// 	client->protocol_version = MQTT_VERSION_3_1_1;
-
-// 	/* MQTT buffers configuration */
-// 	client->rx_buf = rx_buffer;
-// 	client->rx_buf_size = sizeof(rx_buffer);
-// 	client->tx_buf = tx_buffer;
-// 	client->tx_buf_size = sizeof(tx_buffer);
-
-// 	/* MQTT transport configuration */
-// 	client->transport.type = MQTT_TRANSPORT_NON_SECURE;
-
-// }
 
 static int subscribe(struct mqtt_client *client, const char *topic)
 {
@@ -367,11 +286,11 @@ static int subscribe(struct mqtt_client *client, const char *topic)
 	subs_list.list_count = 1U;
 	subs_list.message_id = 1U;
 
-	openthread_set_low_latency();
+	openthread_request_low_latency();
 
 	ret = mqtt_subscribe(client, &subs_list);
 	if (ret) {
-		openthread_set_normal_latency();
+		openthread_request_normal_latency();
 		LOG_ERR("Failed on topic %s", topic);
 		return ret;
 	}
@@ -381,14 +300,15 @@ static int subscribe(struct mqtt_client *client, const char *topic)
 
 static void keepalive(struct k_work *work)
 {
-	int rc;
+	int ret;
 
 	LOG_INF("🤖 mqtt keepalive");
 
 	if (!is_mqtt_connected()) {
 		ret = connect_to_server();
 		if (ret < 0) {
-			return ret;
+			LOG_ERR("Failed to connect to server");
+			goto out;
 		}
 	}
 
@@ -397,14 +317,15 @@ static void keepalive(struct k_work *work)
 			client_ctx.unacked_ping);
 	}
 
-	openthread_set_low_latency();
+	openthread_request_low_latency();
 
-	rc = mqtt_ping(&client_ctx);
-	if (rc < 0) {
-		openthread_set_normal_latency();
-		LOG_ERR("mqtt_ping (%d)", rc);
+	ret = mqtt_ping(&client_ctx);
+	if (ret < 0) {
+		openthread_request_normal_latency();
+		LOG_ERR("mqtt_ping (%d)", ret);
 	}
 
+out:
 	k_work_reschedule(&keepalive_work, K_SECONDS(client_ctx.keepalive));
 }
 
@@ -423,7 +344,7 @@ static void mqtt_receive_thread_function(void)
 	}
 }
 
-K_THREAD_DEFINE(mqtt_receive_thread, CONFIG_APP_POLL_THREAD_STACK_SIZE,
+K_THREAD_DEFINE(mqtt_receive_thread, CONFIG_APP_MQTT_RECEIVE_THREAD_STACK_SIZE,
 		mqtt_receive_thread_function, NULL, NULL, NULL,
 		K_LOWEST_APPLICATION_THREAD_PRIO, 0, SYS_FOREVER_MS);
 
@@ -440,7 +361,7 @@ static int try_to_connect(struct mqtt_client *client)
 	while (retries--) {
 		client_init(client);
 
-		openthread_set_low_latency();
+		openthread_request_low_latency();
 
 		rc = mqtt_connect(client);
 		if (rc) {
@@ -453,7 +374,7 @@ static int try_to_connect(struct mqtt_client *client)
 
 		rc = poll_socket(MQTT_CONNECT_TIMEOUT_MS);
 
-		openthread_set_normal_latency();
+		openthread_request_normal_latency();
 
 		if (rc < 0) {
 			goto abort;
@@ -496,13 +417,13 @@ static int get_mqtt_broker_addrinfo(void)
 		hints.ai_socktype = SOCK_STREAM;
 		hints.ai_protocol = 0;
 
-		openthread_set_low_latency();
+		openthread_request_low_latency();
 
 		rc = getaddrinfo(CONFIG_APP_MQTT_SERVER_HOSTNAME,
 				       STRINGIFY(CONFIG_APP_MQTT_SERVER_PORT),
 				       &hints, &haddr);
 
-		openthread_set_normal_latency();
+		openthread_request_normal_latency();
 
 		if (rc == 0) {
 			char atxt[INET6_ADDRSTRLEN] = { 0 };
@@ -557,39 +478,6 @@ static int connect_to_server(void)
 	return 0;
 }
 
-// static int process_mqtt_and_sleep(struct mqtt_client *client, int timeout)
-// {
-// 	int64_t remaining = timeout;
-// 	int64_t start_time = k_uptime_get();
-// 	int rc;
-
-// 	while (remaining > 0 && mqtt_connected) {
-// 		if (poll_socket(remaining)) {
-// 			rc = mqtt_input(client);
-// 			if (rc != 0) {
-// 				PRINT_RESULT("mqtt_input", rc);
-// 				return rc;
-// 			}
-// 		}
-
-// 		rc = mqtt_live(client);
-// 		if (rc != 0 && rc != -EAGAIN) {
-// 			PRINT_RESULT("mqtt_live", rc);
-// 			return rc;
-// 		} else if (rc == 0) {
-// 			rc = mqtt_input(client);
-// 			if (rc != 0) {
-// 				PRINT_RESULT("mqtt_input", rc);
-// 				return rc;
-// 			}
-// 		}
-
-// 		remaining = timeout + start_time - k_uptime_get();
-// 	}
-
-// 	return 0;
-// }
-
 int mqtt_watchdog_init(const struct device *watchdog, int channel_id)
 {
 	wdt = watchdog;
@@ -597,35 +485,6 @@ int mqtt_watchdog_init(const struct device *watchdog, int channel_id)
 
 	return 0;
 }
-
-// int mqtt_publisher(void)
-// {
-// 	int rc, r = 0;
-
-// 	LOG_INF("attempting to connect: ");
-
-// 	rc = try_to_connect(&client_ctx);
-// 	PRINT_RESULT("try_to_connect", rc);
-// 	if (rc != 0)
-// 		return -1;
-
-// 	rc = publish(&client_ctx, MQTT_QOS_0_AT_MOST_ONCE);
-// 	PRINT_RESULT("mqtt_publish", rc);
-// 	if (rc != 0)
-// 		goto err;
-
-// 	rc = process_mqtt_and_sleep(&client_ctx, 0);
-// 	if (rc != 0)
-// 		goto err;
-
-// err:
-// 	rc = mqtt_disconnect(&client_ctx);
-// 	PRINT_RESULT("mqtt_disconnect", rc);
-
-// 	LOG_INF("Bye!");
-
-// 	return r;
-// }
 
 int mqtt_publish_to_topic(const char *topic, char *payload, bool retain)
 {
@@ -651,11 +510,11 @@ int mqtt_publish_to_topic(const char *topic, char *payload, bool retain)
 		}
 	}
 
-	openthread_set_low_latency();
+	openthread_request_low_latency();
 
 	ret = mqtt_publish(&client_ctx, &param);
 	if (ret < 0) {
-		openthread_set_normal_latency();
+		openthread_request_normal_latency();
 		LOG_ERR("mqtt_publish (%d)", ret);
 		return ret;
 	}

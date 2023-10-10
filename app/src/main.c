@@ -1,5 +1,6 @@
 #include <app_event_manager.h>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/drivers/watchdog.h>
 #include <zephyr/pm/device.h>
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
@@ -8,9 +9,15 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 #include <caf/events/module_state_event.h>
 #include <caf/events/button_event.h>
 
-#include "mqtt.h"
+#include <app_version.h>
+
 #include "dns_resolve.h"
+#include "ha.h"
+#include "init.h"
+#include "mqtt.h"
 #include "openthread.h"
+#include "reset.h"
+#include "uid.h"
 
 
 #define RETRY_DELAY_SECONDS			10
@@ -33,12 +40,12 @@ static struct ha_sensor watchdog_triggered_sensor = {
 };
 
 
-static void register_switch_retry(struct ha_switch *switch)
+static void register_switch_retry(struct ha_switch *sw)
 {
 	int ret;
 
 retry:
-	ret = ha_register_switch(switch);
+	ret = ha_register_switch(sw);
 	if (ret < 0) {
 		LOG_WRN("Could not register switch, retrying");
 		k_sleep(K_SECONDS(RETRY_DELAY_SECONDS));
@@ -88,8 +95,9 @@ retry:
 int main(void)
 {
 	const struct device *wdt = DEVICE_DT_GET(DT_NODELABEL(wdt0));
-	const struct device *cons = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
+	// const struct device *cons = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
 
+	int ret;
 	int main_wdt_chan_id = -1, mqtt_wdt_chan_id = -1;
 	uint32_t reset_cause;
 
@@ -117,9 +125,18 @@ int main(void)
 		return ret;
 	}
 
-	ret = uid_init(&temphum24, &hvac);
+	ret = uid_init();
 	if (ret < 0) {
 		LOG_ERR("Could not init uid module");
+		return ret;
+	}
+
+	ret = uid_generate_unique_id(watchdog_triggered_sensor.unique_id,
+				     sizeof(watchdog_triggered_sensor.unique_id),
+				     "nrf52840", "wdt",
+				     uid_get_device_id());
+	if (ret < 0) {
+		LOG_ERR("Could not generate hdc302x temperature unique id");
 		return ret;
 	}
 
@@ -135,6 +152,7 @@ int main(void)
 	mqtt_watchdog_init(wdt, mqtt_wdt_chan_id);
 	ha_start(uid_get_device_id());
 
+	register_sensor_retry(&watchdog_triggered_sensor);
 	register_switch_retry(&switch1);
 
 	// We set the device online a little after sensor registrations
@@ -170,10 +188,10 @@ int main(void)
 	LOG_INF("MAIN DONE");
 	LOG_INF("****************************************");
 
-	k_sleep(K_SECONDS(3));
-	pm_device_action_run(cons, PM_DEVICE_ACTION_SUSPEND);
+	// k_sleep(K_SECONDS(3));
+	// pm_device_action_run(cons, PM_DEVICE_ACTION_SUSPEND);
 
-	LOG_INF("PM_DEVICE_ACTION_SUSPEND");
+	// LOG_INF("PM_DEVICE_ACTION_SUSPEND");
 
 	while(1) {
 		k_sleep(K_SECONDS(1 * 60));
@@ -182,6 +200,7 @@ int main(void)
 		    ha_get_binary_sensor_state(&watchdog_triggered_sensor) == true) {
 			ha_set_binary_sensor_state(&watchdog_triggered_sensor, false);
 			send_binary_sensor_retry(&watchdog_triggered_sensor);
+		}
 
 		// Epilogue
 
@@ -199,6 +218,7 @@ int main(void)
 
 static bool event_handler(const struct app_event_header *eh)
 {
+	int ret;
 	const struct button_event *evt;
 
 	if (is_button_event(eh)) {

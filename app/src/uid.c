@@ -111,10 +111,10 @@ static int get_device_id_as_string(char *id_string, size_t id_string_len)
 // }
 // #endif
 
-static int generate_unique_id(char *uid_buf, size_t uid_buf_size,
-			      const char *part_number,
-			      const char *sensor_name,
-			      const char *serial_number)
+int uid_generate_unique_id(char *uid_buf, size_t uid_buf_size,
+			   const char *part_number,
+			   const char *sensor_name,
+			   const char *serial_number)
 {
 	int ret;
 

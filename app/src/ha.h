@@ -55,8 +55,8 @@ bool ha_get_binary_sensor_state(struct ha_sensor *);
 int ha_send_sensor_value(struct ha_sensor *);
 int ha_send_binary_sensor_state(struct ha_sensor *);
 
-int ha_register_switch(struct ha_sensor *);
-int ha_toggle_switch_state(struct ha_sensor *);
-int ha_send_switch_state(struct ha_sensor *);
+int ha_register_switch(struct ha_switch *);
+int ha_toggle_switch_state(struct ha_switch *);
+int ha_send_switch_state(struct ha_switch *);
 
 #endif /* HA_H_ */
