@@ -230,6 +230,11 @@ static bool event_handler(const struct app_event_header *eh)
 			if (ret < 0) {
 				LOG_WRN("⚠️ could not send switch state");
 // WHAT TO DO HERE?
+// sys_reboot(SYS_REBOOT_WARM) and do not send mqtt config on boot ?
+// modules/lib/matter/src/platform/nrfconnect/Reboot.cpp
+// zephyr/soc/arm/nordic_nrf/nrf52/soc.c
+// sys_reboot(retainedReason);
+// nrf_power_gpregret_get(NRF_POWER)
 			}
 		}
 	}
