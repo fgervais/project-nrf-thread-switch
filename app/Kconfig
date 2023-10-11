@@ -37,17 +37,17 @@ config APP_MQTT_SERVER_PORT
 	help
 	  MQTT server port number.
 
-config APP_MQTT_RECEIVE_THREAD_STACK_SIZE
-	int "MQTT receive thread stack size"
-	default 2048
-	help
-	  MQTT receive thread stack size.
-
 config APP_MQTT_BUFFER_SIZE
 	int "MQTT RX/TX buffer size"
 	default 1024
 	help
 	  MQTT RX/TX buffer size.
+
+config APP_MQTT_RECEIVE_THREAD_STACK_SIZE
+	int "MQTT receive thread stack size"
+	default 2048
+	help
+	  MQTT receive thread stack size.
 
 config APP_OT_LATENCY_THREAD_STACK_SIZE
 	int "OpenThread latency thread stack size"
