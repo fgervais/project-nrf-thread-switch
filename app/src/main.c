@@ -1,4 +1,5 @@
 #include <app_event_manager.h>
+#include <zephyr/debug/thread_analyzer.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/watchdog.h>
 #include <zephyr/pm/device.h>
@@ -196,6 +197,7 @@ int main(void)
 	// 	}
 	// }
 
+	thread_analyzer_print();
 
 	LOG_INF("****************************************");
 	LOG_INF("MAIN DONE");
