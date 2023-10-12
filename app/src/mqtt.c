@@ -500,7 +500,8 @@ int mqtt_publish_to_topic(const char *topic, char *payload, bool retain)
 	LOG_INF("📤 %s", topic);
 	LOG_INF("   └── payload: %s", payload);
 
-	param.message.topic.qos = MQTT_QOS_0_AT_MOST_ONCE;
+	// QOS 1 to receive an puback
+	param.message.topic.qos = MQTT_QOS_1_AT_LEAST_ONCE;
 	param.message.topic.topic.utf8 = (uint8_t *)topic;
 	param.message.topic.topic.size = strlen(topic);
 	param.message.payload.data = payload;
