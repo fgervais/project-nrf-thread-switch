@@ -25,17 +25,16 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 #define NUMBER_OF_LOOP_RESET_WATCHDOG_SENSOR	(5 * 60 / MAIN_LOOP_PERIOD_SECONDS)
 
 
-
-static struct ha_switch switch1 = {
-	.name = "Switch",
-	.device_class = "switch",
-};
-
 static struct ha_sensor watchdog_triggered_sensor = {
 	.type = HA_BINARY_SENSOR_TYPE,
 	.name = "Watchdog",
 	.device_class = "problem",
 	.retain = true,
+};
+
+static struct ha_switch switch1 = {
+	.name = "Switch",
+	.device_class = "switch",
 };
 
 
@@ -135,7 +134,16 @@ int main(void)
 				     "nrf52840", "wdt",
 				     uid_get_device_id());
 	if (ret < 0) {
-		LOG_ERR("Could not generate hdc302x temperature unique id");
+		LOG_ERR("Could not generate watchdog unique id");
+		return ret;
+	}
+
+	ret = uid_generate_unique_id(switch1.unique_id,
+				     sizeof(switch1.unique_id),
+				     "nrf52840", "button",
+				     uid_get_device_id());
+	if (ret < 0) {
+		LOG_ERR("Could not generate button unique id");
 		return ret;
 	}
 
