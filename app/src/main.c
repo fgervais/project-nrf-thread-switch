@@ -140,7 +140,7 @@ int main(void)
 
 	ret = uid_generate_unique_id(switch1.unique_id,
 				     sizeof(switch1.unique_id),
-				     "nrf52840", "button",
+				     "nrf52840", "btn",
 				     uid_get_device_id());
 	if (ret < 0) {
 		LOG_ERR("Could not generate button unique id");
