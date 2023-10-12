@@ -172,7 +172,7 @@ static void openthread_set_low_latency()
 		return;
 	}
 
-	LOG_INF("⏩ low latency");
+	LOG_INF("   └── ⏩ start low latency");
 
 	openthread_api_mutex_lock(ot_context);
 	otLinkSetPollPeriod(ot_context->instance, 100);
@@ -188,7 +188,7 @@ static void openthread_set_normal_latency()
 		return;
 	}
 
-	LOG_INF("▶️ normal latency");
+	LOG_INF("   └── ⏹️  stop low latency (normal latency)");
 
 	openthread_api_mutex_lock(ot_context);
 	otLinkSetPollPeriod(ot_context->instance, 0);
@@ -196,23 +196,23 @@ static void openthread_set_normal_latency()
 	// openthread_set_csl_period_ms(CSL_NORMAL_LATENCY_PERIOD_MS);
 }
 
-void openthread_request_low_latency()
+void openthread_request_low_latency(const char *reason)
 {
-	LOG_INF("👋 request low latency");
+	LOG_INF("👋 request low latency (%s)", reason);
 
 	k_event_post(&low_latency_events, LOW_LATENCY_EVENT_REQ_LOW);
 }
 
-void openthread_request_normal_latency()
+void openthread_request_normal_latency(const char *reason)
 {
-	LOG_INF("👋 request normal latency");
+	LOG_INF("👋 request normal latency (%s)", reason);
 
 	k_event_post(&low_latency_events, LOW_LATENCY_EVENT_REQ_NORMAL);
 }
 
-void openthread_force_normal_latency()
+void openthread_force_normal_latency(const char *reason)
 {
-	LOG_INF("👋 force normal latency");
+	LOG_INF("👋 force normal latency (%s)", reason);
 
 	k_event_post(&low_latency_events, LOW_LATENCY_EVENT_FORCE_NORMAL);
 }
@@ -234,6 +234,10 @@ static void receive_latency_management_thread_function(void)
 
 		LOG_INF("⏰ events: %08x", events);
 
+		if (events == 0) {
+			LOG_INF("   ├── ⚠️  low latency timeout");
+		}
+
 		if (events & LOW_LATENCY_EVENT_REQ_LOW) {
 			openthread_set_low_latency();
 			low_latency_request_level++;
@@ -243,6 +247,7 @@ static void receive_latency_management_thread_function(void)
 			// We are already in normal latency and someone requested
 			// normal latency.
 			if (low_latency_request_level == 0) {
+				LOG_INF("   └── latency already normal");
 				continue;
 			}
 
