@@ -375,10 +375,8 @@ static int try_to_connect(struct mqtt_client *client)
 		prepare_fds(client);
 
 		rc = poll_socket(MQTT_CONNECT_TIMEOUT_MS);
-
-		openthread_request_normal_latency("mqtt_connect done");
-
 		if (rc < 0) {
+			openthread_request_normal_latency("mqtt_connect error");
 			goto abort;
 		}
 
