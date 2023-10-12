@@ -158,16 +158,13 @@ int main(void)
 	openthread_wait_for_ready();
 
 
-
-	return 0;
-
-
-
 	mqtt_watchdog_init(wdt, mqtt_wdt_chan_id);
 	ha_start(uid_get_device_id());
 
 	register_sensor_retry(&watchdog_triggered_sensor);
 	register_switch_retry(&switch1);
+
+	return 0;
 
 	// We set the device online a little after sensor registrations
 	// so HA gets time to process the sensor registrations first before
