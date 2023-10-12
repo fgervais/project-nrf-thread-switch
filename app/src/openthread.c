@@ -9,6 +9,8 @@ LOG_MODULE_REGISTER(openthread, LOG_LEVEL_DBG);
 #define CSL_LOW_LATENCY_PERIOD_MS 	10
 #define CSL_NORMAL_LATENCY_PERIOD_MS 	500
 
+#define LOW_LATENCY_POLL_PERIOD_MS	30
+
 #define OPENTHREAD_READY_EVENT		BIT(0)
 
 #define LOW_LATENCY_EVENT_REQ_LOW	BIT(0)
@@ -175,7 +177,7 @@ static void openthread_set_low_latency()
 	LOG_INF("   └── ⏩ start low latency");
 
 	openthread_api_mutex_lock(ot_context);
-	otLinkSetPollPeriod(ot_context->instance, 100);
+	otLinkSetPollPeriod(ot_context->instance, LOW_LATENCY_POLL_PERIOD_MS);
 	openthread_api_mutex_unlock(ot_context);
 	// openthread_set_csl_period_ms(CSL_LOW_LATENCY_PERIOD_MS);
 }
