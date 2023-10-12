@@ -190,7 +190,7 @@ static void openthread_set_normal_latency()
 		return;
 	}
 
-	LOG_INF("   └── ⏹️  stop low latency (normal latency)");
+	LOG_INF("   └── ⏹️  stop low latency");
 
 	openthread_api_mutex_lock(ot_context);
 	otLinkSetPollPeriod(ot_context->instance, 0);
@@ -258,6 +258,9 @@ static void receive_latency_management_thread_function(void)
 			if (low_latency_request_level == 0) {
 				openthread_set_normal_latency();
 				timeout_enabled = false;
+			}
+			else {
+				LOG_INF("   └── low latency request level > 0");
 			}
 		}
 		// Timeout or force low latency
