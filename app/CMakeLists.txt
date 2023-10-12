@@ -1,11 +1,8 @@
-#-------------------------------------------------------------------------------
-# Zephyr Example Application
-#
-# Copyright (c) 2021 Nordic Semiconductor ASA
-# SPDX-License-Identifier: Apache-2.0
-
-set(OVERLAY_CONFIG "secret.conf")
-set(OVERLAY_CONFIG "debug.conf")
+# list(APPEND OVERLAY_CONFIG "debug.conf")
+list(APPEND OVERLAY_CONFIG "dns.conf")
+list(APPEND OVERLAY_CONFIG "mqtt.conf")
+list(APPEND OVERLAY_CONFIG "secret.conf")
+list(APPEND OVERLAY_CONFIG "thread-med.conf")
 
 cmake_minimum_required(VERSION 3.20.0)
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
