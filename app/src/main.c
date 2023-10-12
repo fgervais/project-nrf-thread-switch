@@ -156,6 +156,12 @@ int main(void)
 	LOG_INF("💤 waiting for openthread to be ready");
 	openthread_wait_for_ready();
 
+
+
+	return 0;
+
+
+
 	mqtt_watchdog_init(wdt, mqtt_wdt_chan_id);
 	ha_start(uid_get_device_id());
 
