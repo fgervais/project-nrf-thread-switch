@@ -187,8 +187,6 @@ int main(void)
 	// LOG_INF("PM_DEVICE_ACTION_SUSPEND");
 
 	while(1) {
-		k_sleep(K_SECONDS(1 * 60));
-
 		if (main_loop_counter >= NUMBER_OF_LOOP_RESET_WATCHDOG_SENSOR &&
 		    ha_get_binary_sensor_state(&watchdog_triggered_sensor) == true) {
 			ha_set_binary_sensor_state(&watchdog_triggered_sensor, false);
