@@ -1,14 +1,13 @@
-#include <app_event_manager.h>
-#include <zephyr/debug/thread_analyzer.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/watchdog.h>
+#include <zephyr/input/input.h>
 #include <zephyr/pm/device.h>
+// There is an include missing in thread_analyzer.h
+// Workaround by including it lower.
+#include <zephyr/debug/thread_analyzer.h>
+
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
-
-#define MODULE main
-#include <caf/events/module_state_event.h>
-#include <caf/events/button_event.h>
 
 #include <app_version.h>
 
@@ -22,9 +21,12 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 
 #define RETRY_DELAY_SECONDS			10
 
-#define MAIN_LOOP_PERIOD_SECONDS		1 * 60
+#define MAIN_LOOP_PERIOD_SECONDS		(1 * 60)
+#define NUMBER_OF_LOOP_RUN_ANALYSIS		(5 * 60 / MAIN_LOOP_PERIOD_SECONDS)
 #define NUMBER_OF_LOOP_RESET_WATCHDOG_SENSOR	(5 * 60 / MAIN_LOOP_PERIOD_SECONDS)
 
+
+static const struct device *const buttons_dev = DEVICE_DT_GET(DT_NODELABEL(buttons));
 
 static struct ha_sensor watchdog_triggered_sensor = {
 	.type = HA_BINARY_SENSOR_TYPE,
@@ -148,12 +150,6 @@ int main(void)
 		return ret;
 	}
 
-	if (app_event_manager_init()) {
-		LOG_ERR("Event manager not initialized");
-	} else {
-		module_set_state(MODULE_STATE_READY);
-	}
-
 	LOG_INF("💤 waiting for openthread to be ready");
 	openthread_wait_for_ready();
 	// Something else is not ready, not sure what
@@ -177,8 +173,6 @@ int main(void)
 				   is_reset_cause_watchdog(reset_cause));
 	send_binary_sensor_retry(&watchdog_triggered_sensor);
 
-	thread_analyzer_print();
-
 	LOG_INF("🎉 init done 🎉");
 
 	// k_sleep(K_SECONDS(3));
@@ -187,6 +181,11 @@ int main(void)
 	// LOG_INF("PM_DEVICE_ACTION_SUSPEND");
 
 	while(1) {
+		LOG_INF("🗨️  main loop counter: %d", main_loop_counter);
+		if (main_loop_counter % NUMBER_OF_LOOP_RUN_ANALYSIS == 0) {
+			thread_analyzer_print();
+		}
+
 		if (main_loop_counter >= NUMBER_OF_LOOP_RESET_WATCHDOG_SENSOR &&
 		    ha_get_binary_sensor_state(&watchdog_triggered_sensor) == true) {
 			ha_set_binary_sensor_state(&watchdog_triggered_sensor, false);
@@ -207,32 +206,25 @@ int main(void)
 	return 0;
 }
 
-static bool event_handler(const struct app_event_header *eh)
+static void event_handler(struct input_event *evt)
 {
 	int ret;
-	const struct button_event *evt;
 
-	if (is_button_event(eh)) {
-		evt = cast_button_event(eh);
+	LOG_INF("GPIO_KEY %s pressed, zephyr_code=%u, value=%d",
+		 evt->dev->name, evt->code, evt->value);
 
-		if (evt->pressed) {
-			// mqtt_publisher();
-			ha_toggle_switch_state(&switch1);
-			ret = ha_send_switch_state(&switch1);
-			if (ret < 0) {
-				LOG_WRN("⚠️ could not send switch state");
+	ha_toggle_switch_state(&switch1);
+	ret = ha_send_switch_state(&switch1);
+	if (ret < 0) {
+		LOG_WRN("⚠️ could not send switch state");
 // WHAT TO DO HERE?
 // sys_reboot(SYS_REBOOT_WARM) and do not send mqtt config on boot ?
 // modules/lib/matter/src/platform/nrfconnect/Reboot.cpp
 // zephyr/soc/arm/nordic_nrf/nrf52/soc.c
 // sys_reboot(retainedReason);
 // nrf_power_gpregret_get(NRF_POWER)
-			}
-		}
 	}
-
-	return true;
 }
 
-APP_EVENT_LISTENER(MODULE, event_handler);
-APP_EVENT_SUBSCRIBE(MODULE, button_event);
+// Upcoming API: INPUT_CALLBACK_DEFINE()
+INPUT_LISTENER_CB_DEFINE(buttons_dev, event_handler);
