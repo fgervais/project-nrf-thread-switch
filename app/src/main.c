@@ -179,27 +179,9 @@ int main(void)
 				   is_reset_cause_watchdog(reset_cause));
 	send_binary_sensor_retry(&watchdog_triggered_sensor);
 
-	LOG_INF("🎉 init done 🎉");
-
-	// while (1) {
-	// 	dns_resolve_finished = false;
-	// 	dns_resolve_do_ipv6_lookup();
-
-	// 	while (!dns_resolve_finished)
-	// 		k_sleep(K_MSEC(100));
-
-	// 	if (dns_resolve_success) {
-	// 		strncpy(mqtt_server_addr, dns_resolve_last_resolve_addr,
-	// 			sizeof(mqtt_server_addr));
-	// 		break;
-	// 	}
-	// }
-
 	thread_analyzer_print();
 
-	LOG_INF("****************************************");
-	LOG_INF("MAIN DONE");
-	LOG_INF("****************************************");
+	LOG_INF("🎉 init done 🎉");
 
 	// k_sleep(K_SECONDS(3));
 	// pm_device_action_run(cons, PM_DEVICE_ACTION_SUSPEND);
