@@ -35,20 +35,19 @@ static struct ha_sensor watchdog_triggered_sensor = {
 	.retain = true,
 };
 
-static struct ha_switch switch1 = {
-	.name = "Switch",
-	.device_class = "switch",
+static struct ha_button button1 = {
+	.name = "Button",
 };
 
 
-static void register_switch_retry(struct ha_switch *sw)
+static void register_button_retry(struct ha_button *sw)
 {
 	int ret;
 
 retry:
-	ret = ha_register_switch(sw);
+	ret = ha_register_button(sw);
 	if (ret < 0) {
-		LOG_WRN("Could not register switch, retrying");
+		LOG_WRN("Could not register button, retrying");
 		k_sleep(K_SECONDS(RETRY_DELAY_SECONDS));
 		goto retry;
 	}
@@ -141,8 +140,8 @@ int main(void)
 		return ret;
 	}
 
-	ret = uid_generate_unique_id(switch1.unique_id,
-				     sizeof(switch1.unique_id),
+	ret = uid_generate_unique_id(button1.unique_id,
+				     sizeof(button1.unique_id),
 				     "nrf52840", "btn",
 				     uid_get_device_id());
 	if (ret < 0) {
@@ -159,7 +158,7 @@ int main(void)
 	ha_start(uid_get_device_id());
 
 	register_sensor_retry(&watchdog_triggered_sensor);
-	register_switch_retry(&switch1);
+	register_button_retry(&button1);
 
 	// We set the device online a little after sensor registrations
 	// so HA gets time to process the sensor registrations first before
@@ -213,10 +212,9 @@ static void event_handler(struct input_event *evt)
 	LOG_INF("GPIO_KEY %s pressed, zephyr_code=%u, value=%d",
 		 evt->dev->name, evt->code, evt->value);
 
-	ha_toggle_switch_state(&switch1);
-	ret = ha_send_switch_state(&switch1);
+	ret = ha_send_button_event(&button1);
 	if (ret < 0) {
-		LOG_WRN("⚠️ could not send switch state");
+		LOG_WRN("⚠️ could not send button state");
 // WHAT TO DO HERE?
 // sys_reboot(SYS_REBOOT_WARM) and do not send mqtt config on boot ?
 // modules/lib/matter/src/platform/nrfconnect/Reboot.cpp
