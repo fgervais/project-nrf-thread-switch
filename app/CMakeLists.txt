@@ -2,7 +2,7 @@
 list(APPEND OVERLAY_CONFIG "dns.conf")
 list(APPEND OVERLAY_CONFIG "mqtt.conf")
 list(APPEND OVERLAY_CONFIG "secret.conf")
-list(APPEND OVERLAY_CONFIG "thread-med.conf")
+list(APPEND OVERLAY_CONFIG "thread-sed.conf")
 
 cmake_minimum_required(VERSION 3.20.0)
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
