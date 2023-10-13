@@ -165,8 +165,6 @@ int main(void)
 	register_sensor_retry(&watchdog_triggered_sensor);
 	register_switch_retry(&switch1);
 
-	return 0;
-
 	// We set the device online a little after sensor registrations
 	// so HA gets time to process the sensor registrations first before
 	// setting the entities online
