@@ -71,7 +71,6 @@ struct ha_sensor_config {
 };
 
 struct ha_trigger_config {
-	const char *base_path;
 	const char *automation_type;
 	const char *payload;
 	const char *topic;
@@ -123,7 +122,6 @@ static const struct json_obj_descr binary_sensor_config_descr[] = {
 };
 
 static const struct json_obj_descr trigger_config_descr[] = {
-	JSON_OBJ_DESCR_PRIM_NAMED(struct ha_trigger_config, "~", base_path,	JSON_TOK_STRING),
 	JSON_OBJ_DESCR_PRIM(struct ha_trigger_config, automation_type,		JSON_TOK_STRING),
 	JSON_OBJ_DESCR_PRIM(struct ha_trigger_config, payload,			JSON_TOK_STRING),
 	JSON_OBJ_DESCR_PRIM(struct ha_trigger_config, topic,			JSON_TOK_STRING),
@@ -394,12 +392,10 @@ int ha_send_binary_sensor_state(struct ha_sensor *sensor)
 int ha_register_trigger(struct ha_trigger *trigger)
 {
 	int ret;
-	char brief_topic[HA_TOPIC_BUFFER_SIZE];
 	struct ha_trigger_config ha_trigger_config = {
-		.base_path = mqtt_base_path,
 		.automation_type = "trigger",
 		.payload = "PRESS",
-		.topic = brief_topic,
+		.topic = trigger->full_topic,
 		.type = trigger->type,
 		.subtype = trigger->subtype,
 		.dev = DEVICE_CONFIG,
@@ -407,19 +403,11 @@ int ha_register_trigger(struct ha_trigger *trigger)
 
 	LOG_INF("📝 registering trigger: %s", trigger->type);
 
-	ret = snprintf(brief_topic, sizeof(brief_topic),
-		       "~/%s/%s_%s/action",
-		       "trigger", trigger->type, trigger->subtype);
-	if (ret < 0 && ret >= sizeof(brief_topic)) {
-		LOG_ERR("Could not set brief_topic");
-		return -ENOMEM;
-	}
-
 	ret = snprintf(trigger->full_topic, sizeof(trigger->full_topic),
-		 "%s%s",
+		 "%s/%s/%s_%s/action",
 		 mqtt_base_path,
-		 brief_topic + 1);
-	if (ret < 0 && ret >= sizeof(brief_topic)) {
+		 "trigger", trigger->type, trigger->subtype);
+	if (ret < 0 && ret >= sizeof(trigger->full_topic)) {
 		LOG_ERR("Could not set full_topic");
 		return -ENOMEM;
 	}
