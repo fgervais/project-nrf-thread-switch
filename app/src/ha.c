@@ -33,10 +33,13 @@ LOG_MODULE_REGISTER(home_assistant, LOG_LEVEL_DBG);
 #endif
 
 #define LAST_WILL_TOPIC_FORMAT_STRING MQTT_BASE_PATH_FORMAT_STRING "/available"
+#if defined(CONFIG_APP_USE_TEST_DISCOVERY_TOPIC)
+#define DISCOVERY_TOPIC_FORMAT_STRING		"test/%s/%s/config"
+#define DISCOVERY_TOPIC_TRIGGER_FORMAT_STRING	"test/%s/%s/%s_%s/config"
+#else
 #define DISCOVERY_TOPIC_FORMAT_STRING		"homeassistant/%s/%s/config"
 #define DISCOVERY_TOPIC_TRIGGER_FORMAT_STRING	"homeassistant/%s/%s/%s_%s/config"
-// #define DISCOVERY_TOPIC_FORMAT_STRING		"test/%s/%s/config"
-// #define DISCOVERY_TOPIC_TRIGGER_FORMAT_STRING	"test/%s/%s/%s_%s/config"
+#endif
 
 #define DEVICE_CONFIG {						\
 	.identifiers = device_id_hex_string,				\

@@ -21,6 +21,11 @@ config APP_DEV_TYPE_ACTION_BUTTON
     bool "Button device"
 endchoice
 
+config APP_USE_TEST_DISCOVERY_TOPIC
+	bool "Use the test discovery topic"
+	help
+	  Use the test discovery topic.
+
 config APP_MQTT_SERVER_HOSTNAME
 	string "MQTT server hostname"
 	help
