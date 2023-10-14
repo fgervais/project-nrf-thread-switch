@@ -29,8 +29,8 @@ struct ha_sensor {
 
 struct ha_trigger {
 	// Set by user
-	const char *name;
-	char unique_id[UID_UNIQUE_ID_STRING_SIZE];
+	const char *type;
+	const char *subtype;
 
 	char full_topic[HA_TOPIC_BUFFER_SIZE];
 };

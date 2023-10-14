@@ -36,7 +36,8 @@ static struct ha_sensor watchdog_triggered_sensor = {
 };
 
 static struct ha_trigger trigger1 = {
-	.name = "Button",
+	.type = "button_short_press",
+	.subtype = "button_1",
 };
 
 
@@ -137,15 +138,6 @@ int main(void)
 				     uid_get_device_id());
 	if (ret < 0) {
 		LOG_ERR("Could not generate watchdog unique id");
-		return ret;
-	}
-
-	ret = uid_generate_unique_id(trigger1.unique_id,
-				     sizeof(trigger1.unique_id),
-				     "nrf52840", "btn",
-				     uid_get_device_id());
-	if (ret < 0) {
-		LOG_ERR("Could not generate button unique id");
 		return ret;
 	}
 
