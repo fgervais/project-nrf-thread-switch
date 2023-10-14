@@ -35,19 +35,19 @@ static struct ha_sensor watchdog_triggered_sensor = {
 	.retain = true,
 };
 
-static struct ha_button button1 = {
+static struct ha_trigger trigger1 = {
 	.name = "Button",
 };
 
 
-static void register_button_retry(struct ha_button *sw)
+static void register_trigger_retry(struct ha_trigger *trigger)
 {
 	int ret;
 
 retry:
-	ret = ha_register_button(sw);
+	ret = ha_register_trigger(trigger);
 	if (ret < 0) {
-		LOG_WRN("Could not register button, retrying");
+		LOG_WRN("Could not register trigger, retrying");
 		k_sleep(K_SECONDS(RETRY_DELAY_SECONDS));
 		goto retry;
 	}
@@ -140,8 +140,8 @@ int main(void)
 		return ret;
 	}
 
-	ret = uid_generate_unique_id(button1.unique_id,
-				     sizeof(button1.unique_id),
+	ret = uid_generate_unique_id(trigger1.unique_id,
+				     sizeof(trigger1.unique_id),
 				     "nrf52840", "btn",
 				     uid_get_device_id());
 	if (ret < 0) {
@@ -158,7 +158,7 @@ int main(void)
 	ha_start(uid_get_device_id());
 
 	register_sensor_retry(&watchdog_triggered_sensor);
-	register_button_retry(&button1);
+	register_trigger_retry(&trigger1);
 
 	// We set the device online a little after sensor registrations
 	// so HA gets time to process the sensor registrations first before
@@ -212,7 +212,7 @@ static void event_handler(struct input_event *evt)
 	LOG_INF("GPIO_KEY %s pressed, zephyr_code=%u, value=%d",
 		 evt->dev->name, evt->code, evt->value);
 
-	ret = ha_send_button_event(&button1);
+	ret = ha_send_trigger_event(&trigger1);
 	if (ret < 0) {
 		LOG_WRN("⚠️ could not send button state");
 // WHAT TO DO HERE?

@@ -27,12 +27,12 @@ struct ha_sensor {
 	char full_state_topic[HA_TOPIC_BUFFER_SIZE];
 };
 
-struct ha_button {
+struct ha_trigger {
 	// Set by user
 	const char *name;
 	char unique_id[UID_UNIQUE_ID_STRING_SIZE];
 
-	char full_command_topic[HA_TOPIC_BUFFER_SIZE];
+	char full_topic[HA_TOPIC_BUFFER_SIZE];
 };
 
 int ha_start(const char *device_id);
@@ -51,7 +51,7 @@ bool ha_get_binary_sensor_state(struct ha_sensor *);
 int ha_send_sensor_value(struct ha_sensor *);
 int ha_send_binary_sensor_state(struct ha_sensor *);
 
-int ha_register_button(struct ha_button *);
-int ha_send_button_event(struct ha_button *);
+int ha_register_trigger(struct ha_trigger *);
+int ha_send_trigger_event(struct ha_trigger *);
 
 #endif /* HA_H_ */

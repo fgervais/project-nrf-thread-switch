@@ -2,11 +2,11 @@
 // -----------------------------------------------------------------------------
 // ~ = CONFIG_APP_DEV_TYPE_* / device_id_hex_string (MQTT_BASE_PATH_FORMAT_STRING)
 // availability_topic = ~/available
-// state_topic = ~ / <sensor|binary_sensor|button> / sensor->unique_id /state
+// state_topic = ~ / <sensor|binary_sensor|trigger> / sensor->unique_id /state
 
 // MQTT Home Assistant config
 // -----------------------------------------------------------------------------
-// homeassistant / <sensor|binary_sensor|button> / conf->unique_id /config
+// homeassistant / <sensor|binary_sensor|trigger> / conf->unique_id /config
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(home_assistant, LOG_LEVEL_DBG);
@@ -68,13 +68,15 @@ struct ha_sensor_config {
 	struct ha_device dev;
 };
 
-struct ha_button_config {
+struct ha_trigger_config {
 	const char *base_path;
 	const char *name;
 	const char *unique_id;
 	const char *object_id;
-	const char *availability_topic;
-	const char *command_topic;
+	const char *automation_type;
+	const char *topic;
+	const char *type;
+	const char *subtype;
 	struct ha_device dev;
 };
 
@@ -120,14 +122,16 @@ static const struct json_obj_descr binary_sensor_config_descr[] = {
 	JSON_OBJ_DESCR_OBJECT(struct ha_sensor_config, dev, device_descr),
 };
 
-static const struct json_obj_descr button_config_descr[] = {
-	JSON_OBJ_DESCR_PRIM_NAMED(struct ha_button_config, "~", base_path,	JSON_TOK_STRING),
-	JSON_OBJ_DESCR_PRIM(struct ha_button_config, name,			JSON_TOK_STRING),
-	JSON_OBJ_DESCR_PRIM(struct ha_button_config, unique_id,			JSON_TOK_STRING),
-	JSON_OBJ_DESCR_PRIM(struct ha_button_config, object_id,			JSON_TOK_STRING),
-	JSON_OBJ_DESCR_PRIM(struct ha_button_config, availability_topic,	JSON_TOK_STRING),
-	JSON_OBJ_DESCR_PRIM(struct ha_button_config, command_topic,		JSON_TOK_STRING),
-	JSON_OBJ_DESCR_OBJECT(struct ha_button_config, dev, device_descr),
+static const struct json_obj_descr trigger_config_descr[] = {
+	JSON_OBJ_DESCR_PRIM_NAMED(struct ha_trigger_config, "~", base_path,	JSON_TOK_STRING),
+	JSON_OBJ_DESCR_PRIM(struct ha_trigger_config, name,			JSON_TOK_STRING),
+	JSON_OBJ_DESCR_PRIM(struct ha_trigger_config, unique_id,		JSON_TOK_STRING),
+	JSON_OBJ_DESCR_PRIM(struct ha_trigger_config, object_id,		JSON_TOK_STRING),
+	JSON_OBJ_DESCR_PRIM(struct ha_trigger_config, automation_type,		JSON_TOK_STRING),
+	JSON_OBJ_DESCR_PRIM(struct ha_trigger_config, topic,			JSON_TOK_STRING),
+	JSON_OBJ_DESCR_PRIM(struct ha_trigger_config, type,			JSON_TOK_STRING),
+	JSON_OBJ_DESCR_PRIM(struct ha_trigger_config, subtype,			JSON_TOK_STRING),
+	JSON_OBJ_DESCR_OBJECT(struct ha_trigger_config, dev, device_descr),
 };
 
 // <discovery_prefix>/<component>/[<node_id>/]<object_id>/config
@@ -179,7 +183,7 @@ static int ha_send_sensor_discovery(const char *sensor_type,
 	return 0;
 }
 
-static int ha_send_button_discovery(struct ha_button_config *conf)
+static int ha_send_trigger_discovery(struct ha_trigger_config *conf)
 {
 	int ret;
 	char json_config[JSON_CONFIG_BUFFER_SIZE];
@@ -187,12 +191,12 @@ static int ha_send_button_discovery(struct ha_button_config *conf)
 
 	snprintf(discovery_topic, sizeof(discovery_topic),
 		 DISCOVERY_TOPIC_FORMAT_STRING,
-		 "button", conf->unique_id);
+		 "device_automation", conf->unique_id);
 
 	LOG_DBG("discovery topic: %s", discovery_topic);
 
 	ret = json_obj_encode_buf(
-		button_config_descr, ARRAY_SIZE(button_config_descr),
+		trigger_config_descr, ARRAY_SIZE(trigger_config_descr),
 		conf, json_config, sizeof(json_config));
 	if (ret < 0) {
 		LOG_ERR("Could not encode JSON (%d)", ret);
@@ -388,41 +392,43 @@ int ha_send_binary_sensor_state(struct ha_sensor *sensor)
 	return 0;
 }
 
-int ha_register_button(struct ha_button *button)
+int ha_register_trigger(struct ha_trigger *trigger)
 {
 	int ret;
-	char brief_command_topic[HA_TOPIC_BUFFER_SIZE];
-	struct ha_button_config ha_button_config = {
+	char brief_topic[HA_TOPIC_BUFFER_SIZE];
+	struct ha_trigger_config ha_trigger_config = {
 		.base_path = mqtt_base_path,
-		.name = button->name,
-		.unique_id = button->unique_id,
-		.object_id = button->unique_id,
-		.availability_topic = "~/available",
-		.command_topic = brief_command_topic,
+		.name = trigger->name,
+		.unique_id = trigger->unique_id,
+		.object_id = trigger->unique_id,
+		.automation_type = "trigger",
+		.topic = brief_topic,
+		.type = "button_short_press",
+		.subtype = "button_1",
 		.dev = DEVICE_CONFIG,
 	};
 
-	LOG_INF("📝 registering button: %s", button->unique_id);
+	LOG_INF("📝 registering trigger: %s", trigger->unique_id);
 
-	ret = snprintf(brief_command_topic, sizeof(brief_command_topic),
-		       "~/%s/%s/command",
-		       "button", button->unique_id);
-	if (ret < 0 && ret >= sizeof(brief_command_topic)) {
-		LOG_ERR("Could not set brief_command_topic");
+	ret = snprintf(brief_topic, sizeof(brief_topic),
+		       "~/%s/%s/action",
+		       "trigger", trigger->unique_id);
+	if (ret < 0 && ret >= sizeof(brief_topic)) {
+		LOG_ERR("Could not set brief_topic");
 		return -ENOMEM;
 	}
 
-	ret = snprintf(button->full_command_topic, sizeof(button->full_command_topic),
+	ret = snprintf(trigger->full_topic, sizeof(trigger->full_topic),
 		 "%s%s",
 		 mqtt_base_path,
-		 brief_command_topic + 1);
-	if (ret < 0 && ret >= sizeof(brief_command_topic)) {
-		LOG_ERR("Could not set full_command_topic");
+		 brief_topic + 1);
+	if (ret < 0 && ret >= sizeof(brief_topic)) {
+		LOG_ERR("Could not set full_topic");
 		return -ENOMEM;
 	}
 
 	LOG_INF("📖 send discovery");
-	ret = ha_send_button_discovery(&ha_button_config);
+	ret = ha_send_trigger_discovery(&ha_trigger_config);
 	if (ret < 0) {
 		LOG_ERR("Could not send discovery");
 		return ret;
@@ -431,11 +437,11 @@ int ha_register_button(struct ha_button *button)
 	return 0;
 }
 
-int ha_send_button_event(struct ha_button *button)
+int ha_send_trigger_event(struct ha_trigger *trigger)
 {
 	int ret;
 
-	ret = mqtt_publish_to_topic(button->full_command_topic,
+	ret = mqtt_publish_to_topic(trigger->full_topic,
 		"PRESS", false);
 	if (ret < 0) {
 		LOG_ERR("Count not publish to topic");
