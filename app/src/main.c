@@ -1,3 +1,4 @@
+#include <hal/nrf_power.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/watchdog.h>
 #include <zephyr/input/input.h>
@@ -5,6 +6,7 @@
 // There is an include missing in thread_analyzer.h
 // Workaround by including it lower.
 #include <zephyr/debug/thread_analyzer.h>
+#include <zephyr/sys/reboot.h>
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
@@ -24,6 +26,8 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 #define MAIN_LOOP_PERIOD_SECONDS		(1 * 60)
 #define NUMBER_OF_LOOP_RUN_ANALYSIS		(5 * 60 / MAIN_LOOP_PERIOD_SECONDS)
 #define NUMBER_OF_LOOP_RESET_WATCHDOG_SENSOR	(5 * 60 / MAIN_LOOP_PERIOD_SECONDS)
+
+#define ERROR_BOOT_TOKEN			(uint8_t)0x38
 
 
 static const struct device *const buttons_dev = DEVICE_DT_GET(DT_NODELABEL(buttons));
@@ -101,6 +105,7 @@ int main(void)
 	int ret;
 	int main_wdt_chan_id = -1, mqtt_wdt_chan_id = -1;
 	uint32_t reset_cause;
+	bool fast_boot = false;
 
 	uint32_t main_loop_counter = 0;
 
@@ -118,6 +123,11 @@ int main(void)
 		if (ret < 0) {
 			LOG_WRN("Could not erase openthread info");
 		}
+	}
+	else if (is_reset_cause_software(reset_cause)
+		 && nrf_power_gpregret_get(NRF_POWER) == ERROR_BOOT_TOKEN) {
+		LOG_INF("🔥 Fast boot!");
+		fast_boot = true;
 	}
 
 	ret = openthread_my_start();
@@ -206,13 +216,10 @@ static void event_handler(struct input_event *evt)
 
 	ret = ha_send_trigger_event(&trigger1);
 	if (ret < 0) {
-		LOG_WRN("⚠️ could not send button state");
-// WHAT TO DO HERE?
-// sys_reboot(SYS_REBOOT_WARM) and do not send mqtt config on boot ?
-// modules/lib/matter/src/platform/nrfconnect/Reboot.cpp
-// zephyr/soc/arm/nordic_nrf/nrf52/soc.c
-// sys_reboot(retainedReason);
-// nrf_power_gpregret_get(NRF_POWER)
+		LOG_ERR("could not send button state");
+		// modules/lib/matter/src/platform/nrfconnect/Reboot.cpp
+		// zephyr/soc/arm/nordic_nrf/nrf52/soc.c
+		sys_reboot(ERROR_BOOT_TOKEN);
 	}
 }
 

@@ -114,3 +114,8 @@ bool is_reset_cause_button(uint32_t cause)
 {
 	return cause == RESET_PIN;
 }
+
+bool is_reset_cause_software(uint32_t cause)
+{
+	return cause == RESET_SOFTWARE;
+}
