@@ -10,16 +10,6 @@ LOG_MODULE_REGISTER(mqtt, LOG_LEVEL_DBG);
 #include "openthread.h"
 
 
-// #define SERVER_PORT 1883
-// #define MQTT_CLIENTID "zephyr_publisher"
-// #define APP_CONNECT_TIMEOUT_MS 2000
-// #define APP_SLEEP_MSECS 50
-// #define APP_CONNECT_TRIES 2
-// #define APP_MQTT_BUFFER_SIZE 128
-
-// #define MQTT_TOPIC "home/room/julie/switch/light/state"
-// #define MQTT_TOPIC "home/room/computer/switch/table_light/state"
-
 #define MQTT_EVENT_CONNECTED		BIT(0)
 
 
@@ -38,10 +28,6 @@ static struct zsock_pollfd fds[1];
 static int nfds;
 
 static const char *device_id;
-// static bool mqtt_connected;
-
-// char mqtt_server_addr[NET_IPV6_ADDR_LEN];
-// static bool switch_state;
 
 static const struct mqtt_subscription *subscriptions;
 static size_t number_of_subscriptions;
