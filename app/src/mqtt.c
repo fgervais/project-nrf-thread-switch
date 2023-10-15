@@ -325,7 +325,7 @@ static void mqtt_receive_thread_function(void)
 			LOG_INF("mqtt_receive_thread: mqtt_input()");
 			rc = mqtt_input(&client_ctx);
 			if (rc < 0) {
-				LOG_WRN("⚠️ mqtt_input (%d)", rc);
+				LOG_WRN("⚠️  mqtt_input (%d)", rc);
 			}
 		}
 	}
