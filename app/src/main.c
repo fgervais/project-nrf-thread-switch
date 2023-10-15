@@ -31,6 +31,7 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 
 
 static const struct device *const buttons_dev = DEVICE_DT_GET(DT_NODELABEL(buttons));
+static bool ready = false;
 
 static struct ha_sensor watchdog_triggered_sensor = {
 	.type = HA_BINARY_SENSOR_TYPE,
@@ -174,6 +175,8 @@ int main(void)
 				   is_reset_cause_watchdog(reset_cause));
 	send_binary_sensor_retry(&watchdog_triggered_sensor);
 
+	ready = true;
+
 	LOG_INF("🎉 init done 🎉");
 
 	// k_sleep(K_SECONDS(3));
@@ -213,6 +216,10 @@ static void event_handler(struct input_event *evt)
 
 	LOG_INF("GPIO_KEY %s pressed, zephyr_code=%u, value=%d",
 		 evt->dev->name, evt->code, evt->value);
+
+	if (!ready) {
+		return;
+	}
 
 	ret = ha_send_trigger_event(&trigger1);
 	if (ret < 0) {
