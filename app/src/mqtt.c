@@ -544,6 +544,8 @@ int mqtt_init(const char *dev_id,
 	      const char *last_will_topic_string,
 	      const char *last_will_message_string)
 {
+	int ret;
+
 	device_id = dev_id;
 
 	last_will_topic.topic.utf8 = last_will_topic_string;
@@ -552,6 +554,13 @@ int mqtt_init(const char *dev_id,
 
 	last_will_message.utf8 = last_will_message_string;
 	last_will_message.size = strlen(last_will_message_string);
+
+	if (!is_mqtt_connected()) {
+		ret = connect_to_server();
+		if (ret < 0) {
+			return ret;
+		}
+	}
 
 	return 0;
 }

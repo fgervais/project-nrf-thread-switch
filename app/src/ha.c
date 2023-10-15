@@ -89,6 +89,8 @@ static char mqtt_base_path[HA_TOPIC_BUFFER_SIZE];
 static char last_will_topic[HA_TOPIC_BUFFER_SIZE];
 static const char *last_will_message = "offline";
 
+static bool inhibit_discovery_mode;
+
 
 static const struct json_obj_descr device_descr[] = {
 	JSON_OBJ_DESCR_PRIM(struct ha_device, identifiers,	JSON_TOK_STRING),
@@ -214,11 +216,12 @@ static int ha_send_trigger_discovery(struct ha_trigger_config *conf)
 	return 0;
 }
 
-int ha_start(const char *device_id)
+int ha_start(const char *device_id, bool inhibit_discovery)
 {
 	int ret;
 
 	device_id_hex_string = device_id;
+	inhibit_discovery_mode = inhibit_discovery;
 
 	ret = snprintf(mqtt_base_path, sizeof(mqtt_base_path),
 		 MQTT_BASE_PATH_FORMAT_STRING, device_id_hex_string);
@@ -317,11 +320,13 @@ int ha_register_sensor(struct ha_sensor *sensor)
 		return -ENOMEM;
 	}
 
-	LOG_INF("📖 send discovery");
-	ret = ha_send_sensor_discovery(sensor->type, &ha_sensor_config);
-	if (ret < 0) {
-		LOG_ERR("Could not send discovery");
-		return ret;
+	if (!inhibit_discovery_mode) {
+		LOG_INF("📖 send discovery");
+		ret = ha_send_sensor_discovery(sensor->type, &ha_sensor_config);
+		if (ret < 0) {
+			LOG_ERR("Could not send discovery");
+			return ret;
+		}
 	}
 
 	return 0;
@@ -415,11 +420,13 @@ int ha_register_trigger(struct ha_trigger *trigger)
 		return -ENOMEM;
 	}
 
-	LOG_INF("📖 send discovery");
-	ret = ha_send_trigger_discovery(&ha_trigger_config);
-	if (ret < 0) {
-		LOG_ERR("Could not send discovery");
-		return ret;
+	if (!inhibit_discovery_mode) {
+		LOG_INF("📖 send discovery");
+		ret = ha_send_trigger_discovery(&ha_trigger_config);
+		if (ret < 0) {
+			LOG_ERR("Could not send discovery");
+			return ret;
+		}
 	}
 
 	return 0;

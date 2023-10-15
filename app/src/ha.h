@@ -35,7 +35,7 @@ struct ha_trigger {
 	char full_topic[HA_TOPIC_BUFFER_SIZE];
 };
 
-int ha_start(const char *device_id);
+int ha_start(const char *device_id, bool inhibit_discovery);
 int ha_set_online();
 
 int ha_init_sensor(struct ha_sensor *);

@@ -158,22 +158,24 @@ int main(void)
 	k_sleep(K_MSEC(100));
 
 	mqtt_watchdog_init(wdt, mqtt_wdt_chan_id);
-	ha_start(uid_get_device_id());
+	ha_start(uid_get_device_id(), fast_boot);
 
 	register_sensor_retry(&watchdog_triggered_sensor);
 	register_trigger_retry(&trigger1);
 
-	// We set the device online a little after sensor registrations
-	// so HA gets time to process the sensor registrations first before
-	// setting the entities online
-	LOG_INF("💤 waiting for HA to process registration");
-	k_sleep(K_SECONDS(5));
+	if (!fast_boot) {
+		// We set the device online a little after sensor registrations
+		// so HA gets time to process the sensor registrations first before
+		// setting the entities online
+		LOG_INF("💤 waiting for HA to process registration");
+		k_sleep(K_SECONDS(5));
 
-	set_online_retry();
+		set_online_retry();
 
-	ha_set_binary_sensor_state(&watchdog_triggered_sensor,
-				   is_reset_cause_watchdog(reset_cause));
-	send_binary_sensor_retry(&watchdog_triggered_sensor);
+		ha_set_binary_sensor_state(&watchdog_triggered_sensor,
+					   is_reset_cause_watchdog(reset_cause));
+		send_binary_sensor_retry(&watchdog_triggered_sensor);
+	}
 
 	ready = true;
 
