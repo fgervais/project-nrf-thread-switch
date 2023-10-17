@@ -6,10 +6,10 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(openthread, LOG_LEVEL_DBG);
 
-#define CSL_LOW_LATENCY_PERIOD_MS 	10
+// #define CSL_LOW_LATENCY_PERIOD_MS 	10
 #define CSL_NORMAL_LATENCY_PERIOD_MS 	500
 
-#define LOW_LATENCY_POLL_PERIOD_MS	30
+#define LOW_LATENCY_POLL_PERIOD_MS	10
 
 #define OPENTHREAD_READY_EVENT		BIT(0)
 
@@ -190,6 +190,10 @@ static void openthread_set_normal_latency()
 		return;
 	}
 
+	// We wait a bit here before reverting to normal latency so we can
+	// receive ACKs.
+	k_sleep(K_MSEC(LOW_LATENCY_POLL_PERIOD_MS * 2.5));
+
 	LOG_INF("   └── ⏹️  stop low latency");
 
 	openthread_api_mutex_lock(ot_context);
@@ -203,6 +207,16 @@ void openthread_request_low_latency(const char *reason)
 	LOG_INF("👋 request low latency (%s)", reason);
 
 	k_event_post(&low_latency_events, LOW_LATENCY_EVENT_REQ_LOW);
+
+	// We make the calling thread wait a bit here after posting the event
+	// so it won't send its TCP data and so we can take advantage of this
+	// low latency to receive pending TCP ACKs or the like before sending.
+	// 
+	// This helps for example in the case where we were missing an ACK.
+	// Receiving this ACK will make us increase our sequence number when
+	// sending our data and so the server won't go crazy retrying sending
+	// us its ACk.
+	k_sleep(K_MSEC(LOW_LATENCY_POLL_PERIOD_MS * 2.5));
 }
 
 void openthread_request_normal_latency(const char *reason)
