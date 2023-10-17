@@ -221,6 +221,11 @@ static void event_handler(struct input_event *evt)
 	LOG_INF("GPIO_KEY %s pressed, zephyr_code=%u, value=%d",
 		 evt->dev->name, evt->code, evt->value);
 
+	// Do nothing on release
+	if (!evt->value) {
+		return;
+	}
+
 	if (!ready) {
 		return;
 	}
