@@ -190,10 +190,6 @@ static void openthread_set_normal_latency()
 		return;
 	}
 
-	// We wait a bit here before reverting to normal latency so we can
-	// receive ACKs.
-	k_sleep(K_MSEC(LOW_LATENCY_POLL_PERIOD_MS * 2.5));
-
 	LOG_INF("   └── ⏹️  stop low latency");
 
 	openthread_api_mutex_lock(ot_context);
