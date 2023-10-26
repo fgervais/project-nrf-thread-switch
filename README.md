@@ -245,8 +245,16 @@ The server is composed of `home-assistant` and `eclipse-mosquitto` containers.
 
 ### MQTT publish message reception to Wiz light ON message
 
+This is the time from when the server receives the publish message notifying a
+button press to when the Wiz integration of Home Assistant gets the turn ON
+request out.
+
 About `2ms`.
 
 ### MQTT publish message reception to Wiz light ON confirmation
+
+This is the time from when the server receives the publish message notifying a
+button press to when the server receives the confirmation from the bulb that
+it turned ON.
 
 About `77ms`.
