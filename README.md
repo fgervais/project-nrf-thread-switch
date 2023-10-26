@@ -199,6 +199,8 @@ bulb is about `85ms`.
 
 ![Latency Capture](assets/img/DS2_QuickPrint34.png)
 
+![Latency Setup](assets/img/latency-setup.jpg)
+
 ## Demo video
 
 https://youtu.be/jIQvGgGMjlc?si=NDuA6ThBVkoR1B08
