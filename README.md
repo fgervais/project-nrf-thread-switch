@@ -190,6 +190,10 @@ negatively the calculated expected runtime but it should be negligible.
 
 # Latency
 
+The latency has been tested on the following configuration:
+
+![Latency Diagram](assets/img/latency-diagram.png)
+
 The total latency from electrical button press to light getting out from the
 bulb is about `85ms`.
 
