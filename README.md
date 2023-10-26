@@ -8,6 +8,7 @@
 - [Hardware](#hardware)
 - [Border Router](#border-router)
 - [Battery Life](#battery-life)
+- [Latency](#latency)
 
 # Project Management
 
@@ -186,3 +187,66 @@ Runtime:
 
 Note: We did not substract the press time from the idle time. It will affect 
 negatively the calculated expected runtime but it should be negligible.
+
+# Latency
+
+The total latency from electrical button press to light getting out from the
+bulb is about `85ms`.
+
+![Latency Capture](assets/img/DS2_QuickPrint34.png)
+
+## Demo video
+
+https://youtu.be/jIQvGgGMjlc?si=NDuA6ThBVkoR1B08
+
+## Button press to MQTT publish ACK reception
+
+This is the time from the button press event of the Zephyr subsystem to receiving
+the Publish ACK from the MQTT server.
+
+Those logs are enabled from those settings:
+
+```
+CONFIG_INPUT_LOG_LEVEL_DBG=y
+CONFIG_NET_TCP_LOG_LEVEL_DBG=y
+```
+
+```
+[00:22:36.410,217] <dbg> zephyr_gpio_keys: gpio_keys_change_deferred: gpio_change_deferred gpio-keys0 pin_state=0, new_pressed=1, key_index=0
+[00:22:36.410,247] <dbg> zephyr_gpio_keys: gpio_keys_change_deferred: Report event gpio-keys0 1, code=10
+[00:22:36.410,308] <inf> main: GPIO_KEY gpio-keys0 pressed, zephyr_code=10, value=1
+[00:22:36.410,369] <inf> mqtt: 📤 action_button/732107abe638a2a4/trigger/button_short_press_button_1/action
+[00:22:36.410,400] <inf> mqtt:    └── payload: PRESS
+[00:22:36.410,461] <inf> openthread: 👋 request low latency (mqtt_publish)
+[00:22:36.410,491] <inf> openthread: ⏰ events: 00000001
+[00:22:36.410,491] <inf> openthread:    └── ⏩ start low latency
+[00:22:36.410,827] <dbg> net_tcp: tcp_window_full: (input): conn: 0x2001c8b8 window_full=0
+[00:22:36.410,858] <dbg> net_tcp: net_tcp_queue_data: (input): conn: 0x2001c8b8 Queued 84 bytes (total 84)
+[00:22:36.410,888] <dbg> net_tcp: tcp_unsent_len: (input): unsent_len=84
+[00:22:36.411,285] <dbg> net_tcp: tcp_out_ext: (input): ACK,PSH Seq=2990292615 Ack=967402262 Len=84
+[00:22:36.411,529] <dbg> net_tcp: tcp_send_process_no_lock: (input): ACK,PSH Seq=2990292615 Ack=967402262 Len=84 
+[00:22:36.411,773] <dbg> net_tcp: tcp_send: (input): ACK,PSH Seq=2990292615 Ack=967402262 Len=84
+[00:22:36.412,658] <dbg> net_tcp: tcp_send_data: (input): conn: 0x2001c8b8 total=84, unacked_len=84, send_win=2730, mss=1220
+[00:22:36.412,689] <dbg> net_tcp: tcp_send_data: (input): conn: 0x2001c8b8 send_data_timer=0, send_data_retries=0
+[00:22:36.412,719] <dbg> net_tcp: tcp_unsent_len: (input): unsent_len=0
+[00:22:36.412,872] <dbg> net_tcp: tcp_window_full: (input): conn: 0x2001c8b8 window_full=0
+[00:22:36.442,535] <dbg> net_tcp: tcp_in: (rx_q[0]): ACK,PSH Seq=967402262 Ack=2990292699 Len=4 [ESTABLISHED Seq=2990292615 Ack=967402262]
+```
+
+In this specific sample, it is about `32ms`.
+
+In my experience, it is quite stable around that time.
+
+## Server point of view
+
+![Latency Capture](assets/img/wireshark-latency.png)
+
+The server is composed of `home-assistant` and `eclipse-mosquitto` containers.
+
+### MQTT publish message reception to Wiz light ON message
+
+About `2ms`.
+
+### MQTT publish message reception to Wiz light ON confirmation
+
+About `77ms`.
