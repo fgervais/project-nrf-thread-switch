@@ -106,7 +106,7 @@ retry:
 int main(void)
 {
 	const struct device *wdt = DEVICE_DT_GET(DT_NODELABEL(wdt0));
-	// const struct device *cons = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
+	const struct device *cons = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
 
 	int ret;
 	int main_wdt_chan_id = -1, mqtt_wdt_chan_id = -1;
@@ -114,11 +114,6 @@ int main(void)
 	bool fast_boot = false;
 
 	uint32_t main_loop_counter = 0;
-
-
-
-
-	pm_device_action_run(cons, PM_DEVICE_ACTION_SUSPEND);
 
 
 	init_watchdog(wdt, &main_wdt_chan_id, &mqtt_wdt_chan_id);
@@ -190,7 +185,7 @@ int main(void)
 	LOG_INF("🎉 init done 🎉");
 
 	// k_sleep(K_SECONDS(3));
-	// pm_device_action_run(cons, PM_DEVICE_ACTION_SUSPEND);
+	pm_device_action_run(cons, PM_DEVICE_ACTION_SUSPEND);
 
 	// LOG_INF("PM_DEVICE_ACTION_SUSPEND");
 
