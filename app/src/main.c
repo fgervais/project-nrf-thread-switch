@@ -117,13 +117,6 @@ int main(void)
 
 
 
-	if (app_event_manager_init()) {
-		LOG_ERR("Event manager not initialized");
-	} else {
-		module_set_state(MODULE_STATE_READY);
-	}
-
-
 
 	pm_device_action_run(cons, PM_DEVICE_ACTION_SUSPEND);
 
@@ -167,6 +160,12 @@ int main(void)
 	if (ret < 0) {
 		LOG_ERR("Could not generate watchdog unique id");
 		return ret;
+	}
+
+	if (app_event_manager_init()) {
+		LOG_ERR("Event manager not initialized");
+	} else {
+		module_set_state(MODULE_STATE_READY);
 	}
 
 	LOG_INF("💤 waiting for openthread to be ready");
