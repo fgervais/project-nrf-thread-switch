@@ -259,6 +259,10 @@ static bool event_handler(const struct app_event_header *eh)
 	int ret;
 	const struct button_event *evt;
 
+	if (!ready) {
+		goto out;
+	}
+
 	if (is_button_event(eh)) {
 		evt = cast_button_event(eh);
 
@@ -273,6 +277,7 @@ static bool event_handler(const struct app_event_header *eh)
 		}
 	}
 
+out:
 	return true;
 }
 
