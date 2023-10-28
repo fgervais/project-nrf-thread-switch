@@ -28,3 +28,7 @@ target_sources(app PRIVATE
         src/reset.c
         src/uid.c
         src/main.c)
+
+zephyr_include_directories(
+    configuration/${BOARD}
+)

@@ -1,3 +1,4 @@
+#include <app_event_manager.h>
 #include <hal/nrf_power.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/watchdog.h>
@@ -10,6 +11,10 @@
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
+
+#define MODULE main
+#include <caf/events/module_state_event.h>
+#include <caf/events/button_event.h>
 
 #include <app_version.h>
 
@@ -30,7 +35,7 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 #define ERROR_BOOT_TOKEN			(uint8_t)0x38
 
 
-static const struct device *const buttons_dev = DEVICE_DT_GET(DT_NODELABEL(buttons));
+// static const struct device *const buttons_dev = DEVICE_DT_GET(DT_NODELABEL(buttons));
 static bool ready = false;
 
 static struct ha_sensor watchdog_triggered_sensor = {
@@ -109,6 +114,18 @@ int main(void)
 	bool fast_boot = false;
 
 	uint32_t main_loop_counter = 0;
+
+
+
+	if (app_event_manager_init()) {
+		LOG_ERR("Event manager not initialized");
+	} else {
+		module_set_state(MODULE_STATE_READY);
+	}
+
+
+
+	pm_device_action_run(cons, PM_DEVICE_ACTION_SUSPEND);
 
 
 	init_watchdog(wdt, &main_wdt_chan_id, &mqtt_wdt_chan_id);
@@ -214,7 +231,7 @@ int main(void)
 	return 0;
 }
 
-static void event_handler(struct input_event *evt)
+static void event_handler_input(struct input_event *evt)
 {
 	int ret;
 
@@ -240,4 +257,30 @@ static void event_handler(struct input_event *evt)
 }
 
 // Upcoming API: INPUT_CALLBACK_DEFINE()
-INPUT_LISTENER_CB_DEFINE(buttons_dev, event_handler);
+// INPUT_LISTENER_CB_DEFINE(buttons_dev, event_handler_input);
+
+
+static bool event_handler(const struct app_event_header *eh)
+{
+	int ret;
+	const struct button_event *evt;
+
+	if (is_button_event(eh)) {
+		evt = cast_button_event(eh);
+
+		if (evt->pressed) {
+			ret = ha_send_trigger_event(&trigger1);
+			if (ret < 0) {
+				LOG_ERR("could not send button state");
+				// modules/lib/matter/src/platform/nrfconnect/Reboot.cpp
+				// zephyr/soc/arm/nordic_nrf/nrf52/soc.c
+				sys_reboot(ERROR_BOOT_TOKEN);
+			}
+		}
+	}
+
+	return true;
+}
+
+APP_EVENT_LISTENER(MODULE, event_handler);
+APP_EVENT_SUBSCRIBE(MODULE, button_event);
