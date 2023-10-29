@@ -306,6 +306,12 @@ int openthread_my_start(void)
 
 	k_thread_start(receive_latency_thread);
 
+	openthread_api_mutex_lock(ot_context);
+	otThreadSetChildTimeout(
+		ot_context->instance,
+		(int)(CONFIG_OPENTHREAD_POLL_PERIOD / 1000) + 4);
+	openthread_api_mutex_unlock(ot_context);
+
 	return openthread_start(ot_context);
 }
 

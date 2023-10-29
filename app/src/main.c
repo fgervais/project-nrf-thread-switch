@@ -28,9 +28,11 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 
 #define RETRY_DELAY_SECONDS			10
 
-#define MAIN_LOOP_PERIOD_SECONDS		(1 * 60)
-#define NUMBER_OF_LOOP_RUN_ANALYSIS		(5 * 60 / MAIN_LOOP_PERIOD_SECONDS)
-#define NUMBER_OF_LOOP_RESET_WATCHDOG_SENSOR	(5 * 60 / MAIN_LOOP_PERIOD_SECONDS)
+#define MAIN_LOOP_PERIOD_SECONDS		(10 * 60)
+#define NUMBER_OF_LOOP_RUN_ANALYSIS		((2 * MAIN_LOOP_PERIOD_SECONDS) / MAIN_LOOP_PERIOD_SECONDS)
+#define NUMBER_OF_LOOP_RESET_WATCHDOG_SENSOR	((2 * MAIN_LOOP_PERIOD_SECONDS) / MAIN_LOOP_PERIOD_SECONDS)
+
+#define SUSPEND_CONSOLE				0
 
 #define ERROR_BOOT_TOKEN			(uint8_t)0x38
 
@@ -184,15 +186,16 @@ int main(void)
 
 	LOG_INF("🎉 init done 🎉");
 
-	// k_sleep(K_SECONDS(3));
+#if SUSPEND_CONSOLE
 	pm_device_action_run(cons, PM_DEVICE_ACTION_SUSPEND);
-
-	// LOG_INF("PM_DEVICE_ACTION_SUSPEND");
+#endif
 
 	while(1) {
 		LOG_INF("🗨️  main loop counter: %d", main_loop_counter);
 		if (main_loop_counter % NUMBER_OF_LOOP_RUN_ANALYSIS == 0) {
+#if SUSPEND_CONSOLE
 			thread_analyzer_print();
+#endif
 		}
 
 		if (main_loop_counter >= NUMBER_OF_LOOP_RESET_WATCHDOG_SENSOR &&

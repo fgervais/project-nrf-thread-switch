@@ -7,13 +7,16 @@ LOG_MODULE_REGISTER(init, LOG_LEVEL_DBG);
 #include "init.h"
 
 
+#define WATCHDOG_TIMEOUT_SEC	(12 * 60 + 40)
+
+
 static int watchdog_new_channel(const struct device *wdt)
 {
 	int ret;
 
 	struct wdt_timeout_cfg wdt_config = {
 		.window.min = 0,
-		.window.max = (3 * 60 + 40) * MSEC_PER_SEC,
+		.window.max = WATCHDOG_TIMEOUT_SEC * MSEC_PER_SEC,
 		.callback = NULL,
 		.flags = WDT_FLAG_RESET_SOC,
 	};
