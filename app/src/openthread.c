@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <openthread/child_supervision.h>
 #include <openthread/netdata.h>
 #include <openthread/thread.h>
 #include <zephyr/net/openthread.h>
@@ -307,6 +308,11 @@ int openthread_my_start(void)
 	k_thread_start(receive_latency_thread);
 
 	openthread_api_mutex_lock(ot_context);
+	otLinkSetPollPeriod(ot_context->instance, CONFIG_OPENTHREAD_POLL_PERIOD);
+	// Disable child supervision.
+	// If enabled, there will be a child-parent communication every 190s. 
+	otChildSupervisionSetCheckTimeout(ot_context->instance, 0);
+	otChildSupervisionSetInterval(ot_context->instance, 0);
 	otThreadSetChildTimeout(
 		ot_context->instance,
 		(int)(CONFIG_OPENTHREAD_POLL_PERIOD / 1000) + 4);
