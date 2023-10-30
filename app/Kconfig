@@ -21,6 +21,18 @@ config APP_DEV_TYPE_ACTION_BUTTON
     bool "Button device"
 endchoice
 
+config APP_WATCHDOG_TIMEOUT_SEC
+	int "Watchdog timeout (sec)"
+	default 180
+	help
+	  Watchdog timeout in seconds.
+
+config APP_MAIN_LOOP_PERIOD_SEC
+	int "Main loop period (sec)"
+	default 60
+	help
+	  Main loop period in seconds.
+
 config APP_USE_TEST_DISCOVERY_TOPIC
 	bool "Use the test discovery topic"
 	help
