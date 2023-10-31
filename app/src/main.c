@@ -193,7 +193,7 @@ int main(void)
 	while(1) {
 		LOG_INF("🗨️  main loop counter: %d", main_loop_counter);
 		if (main_loop_counter % NUMBER_OF_LOOP_RUN_ANALYSIS == 0) {
-#if SUSPEND_CONSOLE
+#if !(SUSPEND_CONSOLE)
 			thread_analyzer_print();
 #endif
 		}
