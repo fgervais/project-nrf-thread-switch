@@ -13,6 +13,15 @@
 	chosen {
 		zephyr,entropy = &rng;
 	};
+	// buttons: gpio-keys0 {
+    //         compatible = "zephyr,gpio-keys";
+    //         debounce-interval-ms = <30>;
+
+    //         action_button: button_0 {
+    //                 gpios = <&gpio0 25 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+    //                 zephyr,code = <10>;
+    //         };
+    // };
 };
 &adc {
 	status = "disabled";
@@ -44,6 +53,12 @@
 &usbd {
 	status = "disabled";
 };
+&gpio0 {
+	status = "okay";
+};
 &gpio1 {
 	status = "disabled";
+};
+&ieee802154 {
+	status = "okay";
 };
