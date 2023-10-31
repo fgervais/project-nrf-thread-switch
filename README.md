@@ -128,63 +128,6 @@ With the default prefix those forwards are prohibited by [RFC 6052](https://data
 
 # Battery Life
 
-## Power consumption (Internal LDO)
-
-### Idle
-
-Average: 3.08µA
-
-The code wakes up every 10 minutes to feed watchdogs and ping the MQTT server.
-
-![Idle Consumption](assets/img/idle-consumption.png)
-
-### Button press
-
-Each press: 529µC
-
-![Press Consumption](assets/img/press-consumption.png)
-
-## CR2032 expected life (Internal LDO)
-
-Based on commit [`0b7e4261842cd136ae4fb1d94227af606ecbea2d`](https://github.com/fgervais/project-nrf-thread-switch/tree/0b7e4261842cd136ae4fb1d94227af606ecbea2d)
-
-Energizer CR2032 = $810 \\, C$
-
-### Idle all the time
-
-```math
-\frac{810 \, C}{3.08 \times 10^-6 \, \frac{C}{s}} = 262.987 \times 10^6 \, s
-```
-
-```math
-262.987 \times 10^6 \, seconds \times \frac{1 \, minute}{60 \, second} \times \frac{1 \, hour}{60 \, minute} \times \frac{1 \, day}{24 \, hour} \times \frac{1 \, year}{365.25 \, days} = 8.33 \, years
-```
-
-### 50 presses per day
-
-Idle consumption per day:
-```math
-3.08 \times 10^-6 \, \frac{C}{s} \times (60 \times 60 \times 24) = 266.11 \times 10^-3 \frac{C}{day}
-```
-
-Press consumption per day:
-```math
-529 \times 10^-6 \, C \times 50 = 26.45 \times 10^-3 \, C
-```
-
-Total per day:
-```math
-266.11 \times 10^-3 \frac{C}{day} + 26.45 \times 10^-3 \, \frac{C}{day} = 292.56 \times 10^-3 \, \frac{C}{day}
-```
-
-Runtime:
-```math
-810 \, C \div 292.56 \times 10^-3 \, \frac{C}{day} = 2768 \, days = 7.58 \, years
-```
-
-Note: We did not substract the press time from the idle time. It will affect 
-negatively the calculated expected runtime but it should be negligible.
-
 ## Power consumption (Internal DC/DC)
 
 ### Idle
@@ -237,6 +180,65 @@ Total per day:
 Runtime:
 ```math
 810 \, C \div 233.14 \times 10^-3 \, \frac{C}{day} = 3474 \, days = 9.51 \, years
+```
+
+Note: We did not substract the press time from the idle time. It will affect 
+negatively the calculated expected runtime but it should be negligible.
+
+## Power consumption (Internal LDO)
+
+This would be the consumption for boards where the inductor is not populated.
+
+### Idle
+
+Average: 3.08µA
+
+The code wakes up every 10 minutes to feed watchdogs and ping the MQTT server.
+
+![Idle Consumption](assets/img/idle-consumption.png)
+
+### Button press
+
+Each press: 529µC
+
+![Press Consumption](assets/img/press-consumption.png)
+
+## CR2032 expected life (Internal LDO)
+
+Based on commit [`0b7e4261842cd136ae4fb1d94227af606ecbea2d`](https://github.com/fgervais/project-nrf-thread-switch/tree/0b7e4261842cd136ae4fb1d94227af606ecbea2d)
+
+Energizer CR2032 = $810 \\, C$
+
+### Idle all the time
+
+```math
+\frac{810 \, C}{3.08 \times 10^-6 \, \frac{C}{s}} = 262.987 \times 10^6 \, s
+```
+
+```math
+262.987 \times 10^6 \, seconds \times \frac{1 \, minute}{60 \, second} \times \frac{1 \, hour}{60 \, minute} \times \frac{1 \, day}{24 \, hour} \times \frac{1 \, year}{365.25 \, days} = 8.33 \, years
+```
+
+### 50 presses per day
+
+Idle consumption per day:
+```math
+3.08 \times 10^-6 \, \frac{C}{s} \times (60 \times 60 \times 24) = 266.11 \times 10^-3 \frac{C}{day}
+```
+
+Press consumption per day:
+```math
+529 \times 10^-6 \, C \times 50 = 26.45 \times 10^-3 \, C
+```
+
+Total per day:
+```math
+266.11 \times 10^-3 \frac{C}{day} + 26.45 \times 10^-3 \, \frac{C}{day} = 292.56 \times 10^-3 \, \frac{C}{day}
+```
+
+Runtime:
+```math
+810 \, C \div 292.56 \times 10^-3 \, \frac{C}{day} = 2768 \, days = 7.58 \, years
 ```
 
 Note: We did not substract the press time from the idle time. It will affect 
