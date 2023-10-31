@@ -128,7 +128,7 @@ With the default prefix those forwards are prohibited by [RFC 6052](https://data
 
 # Battery Life
 
-## Power consumption
+## Power consumption (Internal LDO)
 
 ### Idle
 
@@ -144,7 +144,7 @@ Each press: 529µC
 
 ![Press Consumption](assets/img/press-consumption.png)
 
-## CR2032 expected life
+## CR2032 expected life (Internal LDO)
 
 Based on commit [`0b7e4261842cd136ae4fb1d94227af606ecbea2d`](https://github.com/fgervais/project-nrf-thread-switch/tree/0b7e4261842cd136ae4fb1d94227af606ecbea2d)
 
@@ -180,6 +180,63 @@ Total per day:
 Runtime:
 ```math
 810 \, C \div 292.56 \times 10^-3 \, \frac{C}{day} = 2768 \, days = 7.58 \, years
+```
+
+Note: We did not substract the press time from the idle time. It will affect 
+negatively the calculated expected runtime but it should be negligible.
+
+## Power consumption (Internal DC/DC)
+
+### Idle
+
+Average: 2.53µA
+
+The code wakes up every 10 minutes to feed watchdogs and ping the MQTT server.
+
+![Idle Consumption](assets/img/idle-consumption-dcdc.png)
+
+### Button press
+
+Each press: 291µC
+
+![Press Consumption](assets/img/press-consumption-dcdc.png)
+
+## CR2032 expected life (Internal DC/DC)
+
+Based on commit [`86a8f0d48d40cb53c8402efef65e8f0e1f45dbd9`](https://github.com/fgervais/project-nrf-thread-switch/tree/86a8f0d48d40cb53c8402efef65e8f0e1f45dbd9)
+
+Energizer CR2032 = $810 \\, C$
+
+### Idle all the time
+
+```math
+\frac{810 \, C}{2.53 \times 10^-6 \, \frac{C}{s}} = 320.158 \times 10^6 \, s
+```
+
+```math
+320.158 \times 10^6 \, seconds \times \frac{1 \, minute}{60 \, second} \times \frac{1 \, hour}{60 \, minute} \times \frac{1 \, day}{24 \, hour} \times \frac{1 \, year}{365.25 \, days} = 10.15 \, years
+```
+
+### 50 presses per day
+
+Idle consumption per day:
+```math
+2.53 \times 10^-6 \, \frac{C}{s} \times (60 \times 60 \times 24) = 218.59 \times 10^-3 \frac{C}{day}
+```
+
+Press consumption per day:
+```math
+291 \times 10^-6 \, C \times 50 = 14.55 \times 10^-3 \, C
+```
+
+Total per day:
+```math
+218.59 \times 10^-3 \frac{C}{day} + 14.55 \times 10^-3 \, \frac{C}{day} = 233.14 \times 10^-3 \, \frac{C}{day}
+```
+
+Runtime:
+```math
+810 \, C \div 233.14 \times 10^-3 \, \frac{C}{day} = 3474 \, days = 9.51 \, years
 ```
 
 Note: We did not substract the press time from the idle time. It will affect 
