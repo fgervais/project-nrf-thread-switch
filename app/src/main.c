@@ -228,33 +228,33 @@ int main(void)
 	return 0;
 }
 
-static void event_handler_input(struct input_event *evt)
-{
-	int ret;
+// static void event_handler(struct input_event *evt)
+// {
+// 	int ret;
 
-	LOG_INF("GPIO_KEY %s pressed, zephyr_code=%u, value=%d",
-		 evt->dev->name, evt->code, evt->value);
+// 	LOG_INF("GPIO_KEY %s pressed, zephyr_code=%u, value=%d",
+// 		 evt->dev->name, evt->code, evt->value);
 
-	// Do nothing on release
-	if (!evt->value) {
-		return;
-	}
+// 	// Do nothing on release
+// 	if (!evt->value) {
+// 		return;
+// 	}
 
-	if (!ready) {
-		return;
-	}
+// 	if (!ready) {
+// 		return;
+// 	}
 
-	ret = ha_send_trigger_event(&trigger1);
-	if (ret < 0) {
-		LOG_ERR("could not send button state");
-		// modules/lib/matter/src/platform/nrfconnect/Reboot.cpp
-		// zephyr/soc/arm/nordic_nrf/nrf52/soc.c
-		sys_reboot(ERROR_BOOT_TOKEN);
-	}
-}
+// 	ret = ha_send_trigger_event(&trigger1);
+// 	if (ret < 0) {
+// 		LOG_ERR("could not send button state");
+// 		// modules/lib/matter/src/platform/nrfconnect/Reboot.cpp
+// 		// zephyr/soc/arm/nordic_nrf/nrf52/soc.c
+// 		sys_reboot(ERROR_BOOT_TOKEN);
+// 	}
+// }
 
 // Upcoming API: INPUT_CALLBACK_DEFINE()
-// INPUT_LISTENER_CB_DEFINE(buttons_dev, event_handler_input);
+// INPUT_LISTENER_CB_DEFINE(buttons_dev, event_handler);
 
 
 static bool event_handler(const struct app_event_header *eh)
