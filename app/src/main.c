@@ -108,7 +108,9 @@ retry:
 int main(void)
 {
 	const struct device *wdt = DEVICE_DT_GET(DT_NODELABEL(wdt30));
+#if SUSPEND_CONSOLE
 	const struct device *cons = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
+#endif
 
 	int ret;
 	int main_wdt_chan_id = -1, mqtt_wdt_chan_id = -1;
