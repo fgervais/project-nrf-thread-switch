@@ -4,9 +4,9 @@ manifest:
       url-base: https://github.com/nrfconnect
   projects:
     - name: nrf
-      repo-path: sdk-nrf
+      repo-path: sdk-nrf-next
       remote: ncs
-      revision: v2.4.2
+      revision: v2.4.99-cs3
       import: true
     - name: zephyr-my-boards
       url: https://github.com/fgervais/zephyr-my-boards
