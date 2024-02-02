@@ -107,7 +107,7 @@ retry:
 
 int main(void)
 {
-	const struct device *wdt = DEVICE_DT_GET(DT_NODELABEL(wdt0));
+	const struct device *wdt = DEVICE_DT_GET(DT_NODELABEL(wdt30));
 	const struct device *cons = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
 
 	int ret;
