@@ -63,24 +63,25 @@ docker compose run --rm nrf west update
 
 ## Flash
 
-### nrfutil
-
+### nrfjprog
 ```bash
-cd application
-docker compose run --rm nrf nrfutil pkg generate \
-        --hw-version 52 --sd-req=0x00 \
-        --application build/zephyr/zephyr.hex \
-        --application-version 1 first.zip
-
-docker compose -f docker-compose.yml -f docker-compose.device.yml run nrf \
-        nrfutil dfu usb-serial -pkg first.zip -p /dev/ttyACM0
+docker build -t zephyr-nrf .
 ```
 
-### pyocd
+Reset:
 ```bash
-cd application
-pyocd flash -e sector -t nrf52840 -f 4000000 build/zephyr/zephyr.hex
+docker run --rm -it -u $(id -u):$(id -g) -v $(pwd):/host -w /host --device /dev/bus/usb zephyr-nrf nrfjprog --family NRF54L --reset
 ```
+
+Program:
+```bash
+docker run --rm -it -u $(id -u):$(id -g) -v $(pwd):/host -w /host --device /dev/bus/usb zephyr-nrf nrfjprog --family NRF54L --program build/zephyr/zephyr.hex --verify --reset
+```
+
+Notes: 
+
+1. To have it working, I had to first run it with `--privileged`. Not sure why.
+2. The serial console is the second `ttyACM`.
 
 # Hardware
 
