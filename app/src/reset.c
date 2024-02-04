@@ -107,15 +107,15 @@ int clear_reset_cause(void)
 
 bool is_reset_cause_watchdog(uint32_t cause)
 {
-	return cause == RESET_WATCHDOG;
+	return cause & RESET_WATCHDOG;
 }
 
 bool is_reset_cause_button(uint32_t cause)
 {
-	return cause == RESET_PIN;
+	return cause & RESET_PIN;
 }
 
 bool is_reset_cause_software(uint32_t cause)
 {
-	return cause == RESET_SOFTWARE;
+	return cause & RESET_SOFTWARE;
 }
