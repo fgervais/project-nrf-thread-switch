@@ -129,6 +129,7 @@ int main(void)
 
 	if (is_reset_cause_watchdog(reset_cause)
 	    || is_reset_cause_button(reset_cause)) {
+	    	LOG_INF("✏️  erasing openthread persistent info");
 		ret = openthread_erase_persistent_info();
 		if (ret < 0) {
 			LOG_WRN("Could not erase openthread info");
