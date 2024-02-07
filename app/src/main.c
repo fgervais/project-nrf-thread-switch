@@ -190,7 +190,11 @@ int main(void)
 	LOG_INF("🎉 init done 🎉");
 
 #if SUSPEND_CONSOLE
-	pm_device_action_run(cons, PM_DEVICE_ACTION_SUSPEND);
+	ret = pm_device_action_run(cons, PM_DEVICE_ACTION_SUSPEND);
+	if (ret < 0) {
+		LOG_ERR("Could not suspend the console");
+		return ret;
+	}
 #endif
 
 	while(1) {
