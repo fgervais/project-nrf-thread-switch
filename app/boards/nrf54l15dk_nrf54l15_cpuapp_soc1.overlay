@@ -1,6 +1,184 @@
 / {
 
 };
-&wdt30 {
+
+&ieee802154 {
+	status = "disabled";
+};
+&cracen {
+	status = "disabled";
+};
+&rng {
+	status = "disabled";
+};
+
+
+
+
+&uart00 {
+	status = "disabled";
+};
+
+&uart20 {
+	status = "disabled";
+};
+
+&uart21 {
+	status = "disabled";
+};
+
+&uart22 {
+	status = "disabled";
+};
+
+&uart30 {
+	status = "disabled";
+};
+
+&grtc {
+	status = "disabled";
+};
+
+&egu10 {
+	status = "disabled";
+};
+
+&egu20 {
+	status = "disabled";
+};
+
+&timer00 {
+	status = "disabled";
+};
+
+&timer10 {
+	status = "disabled";
+};
+
+&timer20 {
+	status = "disabled";
+};
+
+&timer21 {
+	status = "disabled";
+};
+
+&timer22 {
+	status = "disabled";
+};
+
+&timer23 {
+	status = "disabled";
+};
+
+&timer24 {
+	status = "disabled";
+};
+
+&temp {
 	status = "okay";
+};
+
+&spi00 {
+	status = "disabled";
+};
+
+&spi20 {
+	status = "disabled";
+};
+
+&spi21 {
+	status = "disabled";
+};
+
+&spi22 {
+	status = "disabled";
+};
+
+&spi30 {
+	status = "disabled";
+};
+
+&gpio0 {
+	status = "disabled";
+};
+
+&gpio1 {
+	status = "disabled";
+};
+
+&gpio2 {
+	status = "disabled";
+};
+
+&gpiote20 {
+	status = "disabled";
+};
+
+&gpiote30 {
+	status = "disabled";
+};
+
+&adc {
+	status = "disabled";
+};
+
+&i2c20 {
+	status = "disabled";
+};
+
+&i2c21 {
+	status = "disabled";
+};
+
+&i2c22 {
+	status = "disabled";
+};
+
+&i2c30 {
+	status = "disabled";
+};
+
+&qdec20 {
+	status = "disabled";
+};
+
+&qdec21 {
+	status = "disabled";
+};
+
+&dppic00 {
+	status = "disabled";
+};
+
+&dppic10 {
+	status = "disabled";
+};
+
+&dppic20 {
+	status = "disabled";
+};
+
+&dppic30 {
+	status = "disabled";
+};
+
+&i2s20 {
+       status = "disabled";
+};
+
+&clock {
+	status = "okay";
+};
+
+&wdt30 {
+	status = "disabled";
+};
+
+&wdt31 {
+	status = "disabled";
+};
+
+&nfct {
+	status = "disabled";
 };
