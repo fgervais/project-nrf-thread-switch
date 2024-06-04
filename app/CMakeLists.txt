@@ -24,8 +24,6 @@ target_sources(app PRIVATE
         src/openthread.c
         src/ha.c
         src/mqtt.c
-        src/reset.c
-        src/uid.c
         src/main.c)
 
 zephyr_include_directories(

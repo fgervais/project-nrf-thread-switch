@@ -17,13 +17,13 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 #include <caf/events/button_event.h>
 
 #include <app_version.h>
+#include <reset.h>
+#include <uid.h>
 #include <watchdog.h>
 
 #include "ha.h"
 #include "mqtt.h"
 #include "openthread.h"
-#include "reset.h"
-#include "uid.h"
 
 
 #define RETRY_DELAY_SECONDS			10

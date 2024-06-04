@@ -1,7 +1,7 @@
 #ifndef HA_H_
 #define HA_H_
 
-#include "uid.h"
+#include <uid.h>
 
 #define HA_TOPIC_BUFFER_SIZE		128
 
