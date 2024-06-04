@@ -17,9 +17,9 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 #include <caf/events/button_event.h>
 
 #include <app_version.h>
+#include <watchdog.h>
 
 #include "ha.h"
-#include "init.h"
 #include "mqtt.h"
 #include "openthread.h"
 #include "reset.h"
