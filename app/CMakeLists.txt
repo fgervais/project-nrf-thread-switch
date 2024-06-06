@@ -18,12 +18,13 @@ STRING(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+"
 project(app LANGUAGES C VERSION ${VERSION})
 
 configure_file(app_version.h.in ${CMAKE_BINARY_DIR}/app/include/app_version.h)
-target_include_directories(app PRIVATE ${CMAKE_BINARY_DIR}/app/include src)
+zephyr_include_directories(
+    ${CMAKE_BINARY_DIR}/app/include
+)
+
+target_include_directories(app PRIVATE src)
 
 target_sources(app PRIVATE
-        src/openthread.c
-        src/ha.c
-        src/mqtt.c
         src/main.c)
 
 zephyr_include_directories(
