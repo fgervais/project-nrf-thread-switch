@@ -1,75 +1,9 @@
 mainmenu "Thread Button Application"
 
-config APP_DEVICE_NAME
-	string "Device name"
-	help
-	  Device name.
-
-config APP_DEVICE_NICKNAME
-	string "Device nickname"
-	help
-	  Device nickname.
-
-choice APP_DEVICE_TYPE
-    bool "Device type"
-    default APP_DEV_TYPE_AIR_QUALITY
-
-config APP_DEV_TYPE_AIR_QUALITY
-    bool "Air Quality device"
-
-config APP_DEV_TYPE_ACTION_BUTTON
-    bool "Button device"
-endchoice
-
-config APP_WATCHDOG_TIMEOUT_SEC
-	int "Watchdog timeout (sec)"
-	default 180
-	help
-	  Watchdog timeout in seconds.
-
 config APP_MAIN_LOOP_PERIOD_SEC
 	int "Main loop period (sec)"
 	default 60
 	help
 	  Main loop period in seconds.
-
-config APP_USE_TEST_DISCOVERY_TOPIC
-	bool "Use the test discovery topic"
-	help
-	  Use the test discovery topic.
-
-config APP_MQTT_SERVER_HOSTNAME
-	string "MQTT server hostname"
-	help
-	  Hostname of MQTT server.
-
-config APP_MQTT_SERVER_ADDR
-	string "MQTT server address"
-	help
-	  MQTT server address.
-
-config APP_MQTT_SERVER_PORT
-	int "MQTT server port number"
-	default 1883
-	help
-	  MQTT server port number.
-
-config APP_MQTT_BUFFER_SIZE
-	int "MQTT RX/TX buffer size"
-	default 1024
-	help
-	  MQTT RX/TX buffer size.
-
-config APP_MQTT_RECEIVE_THREAD_STACK_SIZE
-	int "MQTT receive thread stack size"
-	default 2048
-	help
-	  MQTT receive thread stack size.
-
-config APP_OT_LATENCY_THREAD_STACK_SIZE
-	int "OpenThread latency thread stack size"
-	default 2048
-	help
-	  OpenThread latency thread stack size.
 
 source "Kconfig.zephyr"
