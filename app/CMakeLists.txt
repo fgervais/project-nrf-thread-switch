@@ -1,6 +1,5 @@
 # list(APPEND OVERLAY_CONFIG "debug.conf")
 list(APPEND OVERLAY_CONFIG "dns.conf")
-list(APPEND OVERLAY_CONFIG "mqtt.conf")
 list(APPEND OVERLAY_CONFIG "secret.conf")
 list(APPEND OVERLAY_CONFIG "thread-sed.conf")
 
