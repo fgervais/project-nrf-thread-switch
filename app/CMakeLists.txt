@@ -1,6 +1,5 @@
 # list(APPEND OVERLAY_CONFIG "debug.conf")
 list(APPEND OVERLAY_CONFIG "dns.conf")
-list(APPEND OVERLAY_CONFIG "mqtt.conf")
 list(APPEND OVERLAY_CONFIG "secret.conf")
 list(APPEND OVERLAY_CONFIG "thread-sed.conf")
 
@@ -18,15 +17,13 @@ STRING(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+"
 project(app LANGUAGES C VERSION ${VERSION})
 
 configure_file(app_version.h.in ${CMAKE_BINARY_DIR}/app/include/app_version.h)
-target_include_directories(app PRIVATE ${CMAKE_BINARY_DIR}/app/include src)
+zephyr_include_directories(
+    ${CMAKE_BINARY_DIR}/app/include
+)
+
+target_include_directories(app PRIVATE src)
 
 target_sources(app PRIVATE
-        src/openthread.c
-        src/ha.c
-        src/mqtt.c
-        src/init.c
-        src/reset.c
-        src/uid.c
         src/main.c)
 
 zephyr_include_directories(
