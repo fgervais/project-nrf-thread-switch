@@ -15,11 +15,10 @@
 ## Init
 
 ```bash
-mkdir project-nrf-connect-test
-cd project-nrf-connect-test
-docker run --rm -it -u $(id -u):$(id -g) -v $(pwd):/workdir/project nordicplayground/nrfconnect-sdk:v2.0-branch bash
-west init -m https://github.com/fgervais/project-nrf-thread-switch.git .
-west update
+mkdir project-nrf-thread-switch
+cd project-nrf-thread-switch
+docker run --rm -u $(id -u):$(id -g) -v $(pwd):/new -w /new zephyrprojectrtos/ci \
+        bash -c "west init -m https://github.com/fgervais/project-nrf-thread-switch.git . && west update"
 ```
 
 ### Add Thread network key
@@ -37,14 +36,14 @@ CONFIG_OPENTHREAD_NETWORKKEY="00:11:22:33:44:55:66:77:88:99:aa:bb:cc:dd:ee:ff"
 
 ```bash
 cd application
-docker compose run --rm nrf west build -b pink_panda -s app
+docker compose run --rm nrf west build -b pink_panda@2.0.0 -s app
 ```
 
 ## menuconfig
 
 ```bash
 cd application
-docker compose run --rm nrf west build -b pink_panda -s app -t menuconfig
+docker compose run --rm nrf west build -b pink_panda@2.0.0 -s app -t menuconfig
 ```
 
 ## Clean
