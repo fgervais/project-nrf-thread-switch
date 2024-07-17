@@ -6,15 +6,15 @@ manifest:
     - name: nrf
       repo-path: sdk-nrf
       remote: ncs
-      revision: v2.4.2
+      revision: v2.7.0
       import: true
     - name: zephyr-my-boards
       url: https://github.com/fgervais/zephyr-my-boards
-      revision: 76c30ba22ea30c0b560b613889787a689535fba3
+      revision: b0c946a493c6264f263f24b125698062808d2e8b
       path: myboards
     - name: zephyr-mymodule-base
       url: https://github.com/fgervais/zephyr-mymodule-base.git
-      revision: 6b3e65a64ce5f44b159c89bc814a9452fcf94c39
+      revision: ac59e567ac7c2281d41aff2fd43634e9c1bb179b
       path: mymodules/base
   self:
     path: application
