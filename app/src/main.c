@@ -133,7 +133,7 @@ int main(void)
 		}
 	}
 	else if (is_reset_cause_software(reset_cause)
-		 && nrf_power_gpregret_get(NRF_POWER) == ERROR_BOOT_TOKEN) {
+		 && nrf_power_gpregret_get(NRF_POWER, 0) == ERROR_BOOT_TOKEN) {
 		LOG_INF("🔥 Fast boot!");
 		fast_boot = true;
 	}
