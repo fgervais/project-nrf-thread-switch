@@ -118,7 +118,23 @@ int main(void)
 	uint32_t main_loop_counter = 0;
 
 
-	init_watchdog(wdt, &main_wdt_chan_id, &mqtt_wdt_chan_id);
+	ret = watchdog_new_channel(wdt, &main_wdt_chan_id);
+	if (ret < 0) {
+		LOG_ERR("Could allocate main watchdog channel");
+		return ret;
+	}
+
+	ret = watchdog_new_channel(wdt, &mqtt_wdt_chan_id);
+	if (ret < 0) {
+		LOG_ERR("Could allocate main watchdog channel");
+		return ret;
+	}
+
+	ret = watchdog_start(wdt);
+	if (ret < 0) {
+		LOG_ERR("Could allocate start watchdog");
+		return ret;
+	}
 
 	LOG_INF("\n\n🚀 MAIN START (%s) 🚀\n", APP_VERSION_FULL);
 
