@@ -53,58 +53,6 @@ static struct ha_trigger trigger1 = {
 };
 
 
-static void register_trigger_retry(struct ha_trigger *trigger)
-{
-	int ret;
-
-retry:
-	ret = ha_register_trigger(trigger);
-	if (ret < 0) {
-		LOG_WRN("Could not register trigger, retrying");
-		k_sleep(K_SECONDS(RETRY_DELAY_SECONDS));
-		goto retry;
-	}
-}
-
-static void register_sensor_retry(struct ha_sensor *sensor)
-{
-	int ret;
-
-retry:
-	ret = ha_register_sensor(sensor);
-	if (ret < 0) {
-		LOG_WRN("Could not register sensor, retrying");
-		k_sleep(K_SECONDS(RETRY_DELAY_SECONDS));
-		goto retry;
-	}
-}
-
-static void send_binary_sensor_retry(struct ha_sensor *sensor)
-{
-	int ret;
-
-retry:
-	ret = ha_send_binary_sensor_state(sensor);
-	if (ret < 0) {
-		LOG_WRN("Could not send binary sensor, retrying");
-		k_sleep(K_SECONDS(RETRY_DELAY_SECONDS));
-		goto retry;
-	}
-}
-
-static void set_online_retry(void)
-{
-	int ret;
-
-retry:
-	ret = ha_set_online();
-	if (ret < 0) {
-		LOG_WRN("Could not set online, retrying");
-		k_sleep(K_SECONDS(RETRY_DELAY_SECONDS));
-		goto retry;
-	}
-}
-
 int main(void)
 {
 	const struct device *wdt = DEVICE_DT_GET(DT_NODELABEL(wdt0));
@@ -189,13 +137,14 @@ int main(void)
 	mqtt_watchdog_init(wdt, mqtt_wdt_chan_id);
 	ha_start(uid_get_device_id(), fast_boot);
 
-	register_sensor_retry(&watchdog_triggered_sensor);
-	register_trigger_retry(&trigger1);
+	ha_register_sensor_retry(&watchdog_triggered_sensor, RETRY_DELAY_SECONDS);
+	ha_register_trigger_retry(&trigger1, RETRY_DELAY_SECONDS);
 
 	if (!fast_boot) {
 		ha_set_binary_sensor_state(&watchdog_triggered_sensor,
 					   is_reset_cause_watchdog(reset_cause));
-		send_binary_sensor_retry(&watchdog_triggered_sensor);
+		ha_send_binary_sensor_retry(&watchdog_triggered_sensor,
+					    RETRY_DELAY_SECONDS);
 	}
 
 	ready = true;
@@ -217,7 +166,8 @@ int main(void)
 		if (main_loop_counter >= NUMBER_OF_LOOP_RESET_WATCHDOG_SENSOR &&
 		    ha_get_binary_sensor_state(&watchdog_triggered_sensor) == true) {
 			ha_set_binary_sensor_state(&watchdog_triggered_sensor, false);
-			send_binary_sensor_retry(&watchdog_triggered_sensor);
+			ha_send_binary_sensor_retry(&watchdog_triggered_sensor,
+						    RETRY_DELAY_SECONDS);
 		}
 
 		if (main_loop_counter == 0) {
@@ -227,7 +177,7 @@ int main(void)
 			LOG_INF("💤 waiting for HA to process registration");
 			k_sleep(K_SECONDS(5));
 
-			set_online_retry();
+			ha_set_online_retry(RETRY_DELAY_SECONDS);
 		}
 
 		// Epilogue
